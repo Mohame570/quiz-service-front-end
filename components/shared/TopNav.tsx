@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
 import { useQuizSearch } from "@/components/shared/QuizSearchProvider";
 import { clearToken } from "@/lib/auth/session";
 
+import BrandLogo from "@/components/shared/BrandLogo";
+
 type NavItem = {
   label: string;
   href: string;
@@ -102,15 +104,7 @@ export default function TopNav() {
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-border bg-surface">
       <div className="mx-auto flex h-full max-w-[1200px] items-center gap-6 px-6">
-        <Link
-          href="/student"
-          className="flex items-center gap-2.5 transition-opacity duration-150 ease-out hover:opacity-80"
-        >
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-inverse shadow-[0_4px_12px_rgba(67,130,223,0.35)]">
-            <DocumentIcon />
-          </span>
-          <span className="text-h3 font-bold text-foreground">PitIQ</span>
-        </Link>
+        <BrandLogo href="/student" variant="full" imageClassName="h-12 max-w-[260px]" />
 
         <nav className="hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map((item) => {
@@ -169,9 +163,9 @@ export default function TopNav() {
                 }
               }}
               placeholder="Search quizzes by title..."
-              className="w-64 rounded-full border border-border bg-surface py-1.5 pl-8 pr-12 text-small text-foreground placeholder:text-muted focus-visible:border-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+              className="w-64 rounded-full border border-border bg-surface py-1.5 pl-8 pr-12 text-small text-foreground placeholder:text-muted-foreground focus-visible:border-accent-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             />
-            <span className="pointer-events-none absolute right-2 inline-flex items-center gap-0.5 rounded border border-border bg-surface px-1.5 py-0.5 text-caption text-muted">
+            <span className="pointer-events-none absolute right-2 inline-flex items-center gap-0.5 rounded border border-border bg-surface px-1.5 py-0.5 text-caption text-muted-foreground">
               <span aria-hidden>⌘</span>
               <span>K</span>
             </span>

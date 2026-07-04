@@ -7,6 +7,9 @@ import { acceptQuizInvitation } from '@/lib/api/student';
 import { getUser, isAuthenticated } from '@/lib/auth/session';
 import { setQuizAddedFlash } from '@/lib/quiz-invite-flash';
 import Container from '@/components/shared/Container';
+import LoadingPanel from '@/components/shared/LoadingPanel';
+import EmptyPanel from '@/components/shared/EmptyPanel';
+import { Button } from '@/components/ui/button';
 import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 type Phase = 'checking' | 'accepting' | 'error' | 'verify';
@@ -66,8 +69,8 @@ export default function QuizInvitePage() {
   if (phase === 'checking' || phase === 'accepting') {
     return (
       <Container size="quiz">
-        <div className="py-16 text-center text-foreground-secondary">
-          Joining quiz...
+        <div className="py-8">
+          <LoadingPanel message="Joining quiz…" />
         </div>
       </Container>
     );
@@ -75,17 +78,19 @@ export default function QuizInvitePage() {
 
   return (
     <Container size="quiz">
-      <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <h1 className="text-h1 text-foreground">Could not join quiz</h1>
-        <p className="max-w-md text-body text-error">
-          {error ?? 'This quiz is not available.'}
-        </p>
-        <Link
-          href="/student/quiz-list"
-          className="mt-4 inline-block rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse hover:bg-accent-600"
-        >
-          Back to quiz list
-        </Link>
+      <div className="py-8">
+        <EmptyPanel
+          title="Could not join quiz"
+          description={error ?? 'This quiz is not available.'}
+          action={
+            <Button
+              asChild
+              className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+            >
+              <Link href="/student/quiz-list">Back to quiz list</Link>
+            </Button>
+          }
+        />
       </div>
     </Container>
   );

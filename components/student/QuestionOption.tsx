@@ -7,6 +7,7 @@ type QuestionOptionProps = {
   isSelected: boolean;
   onSelect: (optionId: string) => void;
   optionLabel: string;
+  disabled?: boolean;
 };
 
 export default function QuestionOption({
@@ -14,13 +15,15 @@ export default function QuestionOption({
   isSelected,
   onSelect,
   optionLabel,
+  disabled = false,
 }: QuestionOptionProps) {
   return (
     <button
       type="button"
       onClick={() => onSelect(option.id)}
+      disabled={disabled}
       aria-pressed={isSelected}
-      className={`flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-left text-body transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+      className={`flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-left text-body transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 disabled:cursor-not-allowed disabled:opacity-60 ${
         isSelected
           ? 'border-2 border-accent-500 bg-accent-50'
           : 'border border-border bg-surface hover:border-accent-200 hover:bg-accent-50'

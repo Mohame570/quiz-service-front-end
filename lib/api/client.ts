@@ -4,6 +4,18 @@ const API_BASE_URL =
     ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
     : '';
 
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
 type FetchOptions = RequestInit & {
   requireAuth?: boolean;
 };
@@ -40,12 +52,12 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
   if (response.status === 401 && typeof window !== 'undefined') {
     localStorage.removeItem('accessToken');
     window.location.href = '/login';
-    throw new Error('Unauthorized');
+    throw new ApiError('Unauthorized', 401);
   }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    throw new ApiError(error.message || `HTTP ${response.status}`, response.status, error);
   }
 
   if (response.status === 204) {

@@ -1,3 +1,5 @@
+import type { QuizData } from '@/types/quiz/admin';
+
 export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'SHORT_TEXT' | 'ESSAY';
 
 export type QuestionOption = {
@@ -25,5 +27,9 @@ export type QuestionDto = {
   type: QuestionType;
   text: string;
   options: string[];
-  order: number;
+  correctAnswer: string | number | boolean;
+  points: number;
+  createdAt: string;
+  updatedAt: string;
+  quizzes: QuizData[];
 };

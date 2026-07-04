@@ -11,7 +11,7 @@ export type QuizData = {
   id: string;
   title: string;
   description: string;
-  status: 'DRAFT' | 'PUBLISHED';
+  status: QuizStatus;
   durationMinutes: number;
   passingScore: number;
   startsAt: string;

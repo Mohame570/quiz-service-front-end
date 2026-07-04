@@ -2,59 +2,56 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BookCopy, CircleDashed, Plus, Settings2, SquarePen } from 'lucide-react';
+import { BookCopy, Settings2 } from 'lucide-react';
 
 import Card from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { CreateQuizFormInput, CreateQuizFormValues, createQuizSchema } from '@/lib/validation';
-import { updateAdminQuiz } from '@/lib/api/admin/quizzes';
+import { EditQuizFormInput, EditQuizFormValues, editQuizSchema } from '@/lib/validation';
+import { updateAdminQuiz, unpublishAdminQuiz } from '@/lib/api/admin/quizzes';
+import { QUIZ_STATUS_LABEL } from '@/lib/quiz-status';
 import SectionTitle from './FormSectionTitle';
 import FieldError from './FormFieldError';
 import { useRouter } from 'next/navigation';
 
-type EditQuizFormProps = CreateQuizFormInput & { id: string };
+type EditQuizFormProps = EditQuizFormInput & { id: string };
 
 function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
   const router = useRouter();
+  const initialStatus = defaultValues.status;
 
-  const form = useForm<CreateQuizFormInput, undefined, CreateQuizFormValues>({
-    resolver: zodResolver(createQuizSchema),
+  const form = useForm<EditQuizFormInput, undefined, EditQuizFormValues>({
+    resolver: zodResolver(editQuizSchema),
     defaultValues,
     mode: 'onSubmit',
   });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const visibility = form.watch('visibilityStatus');
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setValue,
   } = form;
 
-  const statusOptions = [
-    { key: 'DRAFT', label: 'Draft' },
-    { key: 'PUBLISHED', label: 'Published' },
-  ] as const;
-
-  const onSubmit = handleSubmit(async (values) => {
+  const submit = async (values: EditQuizFormValues, redirectTo: 'questions' | 'dashboard') => {
     try {
       await updateAdminQuiz(id, values);
-      router.push('/admin/dashboard');
+      if (initialStatus === 'PUBLISHED' && values.status === 'DRAFT') {
+        await unpublishAdminQuiz(id);
+      }
+      router.push(
+        redirectTo === 'questions' ? `/admin/dashboard/edit/${id}/questions` : '/admin/dashboard'
+      );
     } catch (err) {
       form.setError('root', {
         message: err instanceof Error ? err.message : 'Failed to update quiz. Please try again.',
       });
     }
-  });
+  };
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6">
+    <form onSubmit={handleSubmit((values) => submit(values, 'questions'))} className="grid gap-6">
       <Card>
         <div className="border-b border-divider px-6 py-5">
           <SectionTitle icon={<BookCopy className="h-4 w-4" />} title="Quiz Identity" />
@@ -93,36 +90,6 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
         </div>
 
         <div className="grid gap-6 px-6 py-6">
-          <div className="grid gap-2">
-            <Label>Visibility Status</Label>
-            <div className="rounded-2xl border border-border bg-surface p-1">
-              <div className="grid grid-cols-2 gap-1">
-                {statusOptions.map((option) => {
-                  const isActive = visibility === option.key;
-
-                  return (
-                    <button
-                      key={option.key}
-                      type="button"
-                      onClick={() => {
-                        setValue('visibilityStatus', option.key, { shouldValidate: true });
-                      }}
-                      className={cn(
-                        'rounded-xl px-4 py-3 text-small font-medium transition-colors duration-150',
-                        isActive
-                          ? 'bg-primary-800 text-white'
-                          : 'text-foreground-secondary hover:bg-primary-50 hover:text-primary-800'
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <FieldError message={errors.visibilityStatus?.message} />
-          </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="durationMinutes">Duration (min)</Label>
@@ -154,6 +121,32 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
             </div>
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="status">Status</Label>
+            <select
+              id="status"
+              disabled={initialStatus !== 'PUBLISHED'}
+              aria-invalid={Boolean(errors.status)}
+              className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground shadow-none outline-none transition-colors focus:border-primary-300 focus:ring-2 focus:ring-primary-200/70 disabled:cursor-not-allowed disabled:opacity-50"
+              {...register('status')}
+            >
+              {initialStatus === 'PUBLISHED' ? (
+                <>
+                  <option value="PUBLISHED">{QUIZ_STATUS_LABEL.PUBLISHED}</option>
+                  <option value="DRAFT">{QUIZ_STATUS_LABEL.DRAFT}</option>
+                </>
+              ) : (
+                <option value={initialStatus}>{QUIZ_STATUS_LABEL[initialStatus]}</option>
+              )}
+            </select>
+            {initialStatus !== 'PUBLISHED' && (
+              <p className="text-small text-muted-foreground">
+                Publish this quiz from the Manage Questions page once it has attached questions.
+              </p>
+            )}
+            <FieldError message={errors.status?.message} />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="startDate">Starts At</Label>
@@ -180,58 +173,26 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
         </div>
       </Card>
 
-      <Card>
-        <div className="border-b border-divider px-6 py-5">
-          <div className="flex items-center justify-between gap-4">
-            <SectionTitle icon={<CircleDashed className="h-4 w-4" />} title="Questions" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full border-primary-200 bg-white text-primary-800 hover:bg-primary-50 hover:text-primary-900"
-            >
-              <Plus className="h-4 w-4" />
-              Add New Question
-            </Button>
-          </div>
-        </div>
-
-        <div className="px-6 py-6">
-          <div className="grid place-items-center rounded-2xl border border-dashed border-border bg-primary-50/40 px-6 py-14 text-center">
-            <div className="grid gap-4">
-              <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface text-primary-700 shadow-sm">
-                <SquarePen className="h-5 w-5" />
-              </div>
-              <div className="grid gap-2">
-                <h3 className="text-h3 text-primary-800">No questions yet</h3>
-                <p className="max-w-md text-small text-foreground-secondary">
-                  Start building your assessment by adding multiple choice, true/false, or
-                  open-ended questions.
-                </p>
-              </div>
-              <div>
-                <Button
-                  type="button"
-                  className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create First Question
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
       <div className="flex flex-col items-end gap-2 pt-2">
         {errors.root?.message && <FieldError message={errors.root.message} />}
-        <Button
-          type="submit"
-          className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
-          disabled={isSubmitting}
-        >
-          Save Changes
-        </Button>
+        <div className="flex flex-wrap justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSubmit((values) => submit(values, 'dashboard'))}
+            className="rounded-full border-primary-200 px-6 text-primary-800 hover:bg-primary-50"
+            disabled={isSubmitting}
+          >
+            Save
+          </Button>
+          <Button
+            type="submit"
+            className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+            disabled={isSubmitting}
+          >
+            Save &amp; Manage Questions
+          </Button>
+        </div>
       </div>
     </form>
   );

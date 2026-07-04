@@ -3,8 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LogIn } from "lucide-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { login } from "@/lib/api/auth";
 import { getPostAuthDestination } from "@/lib/auth/redirect";
+import Card from "@/components/ui/Card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import StatusBanner from "@/components/shared/StatusBanner";
+import SectionTitle from "@/components/shared/SectionTitle";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -31,84 +39,77 @@ export default function LoginClient() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent-500">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-inverse"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="8" y1="13" x2="16" y2="13" />
-              <line x1="8" y1="17" x2="13" y2="17" />
-            </svg>
-          </div>
-          <h1 className="text-h1 text-foreground">PitIQ</h1>
-          <p className="mt-2 text-body text-foreground-secondary">
-            Sign in to your account
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-small text-error">
-              {error}
+        <section
+          aria-labelledby="login-welcome"
+          className="relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-primary-800 via-primary-900 to-[#040C24] px-8 py-7 text-inverse shadow-[0_16px_48px_rgba(15,23,42,0.18)]"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 18% 28%, rgba(67, 130, 223, 0.55) 0%, transparent 42%), radial-gradient(circle at 82% 72%, rgba(86, 89, 188, 0.4) 0%, transparent 45%)",
+            }}
+          />
+          <div className="relative flex flex-col items-center gap-4 text-center">
+            <BrandLogo variant="mark" imageClassName="h-20 max-w-[140px]" />
+            <div className="flex flex-col gap-1">
+              <p className="text-h1 font-bold text-inverse">PitIQ</p>
+              <p className="text-caption text-inverse-secondary">
+                Pause. Assess. Advance.
+              </p>
             </div>
-          )}
+            <p id="login-welcome" className="text-body text-inverse-secondary">
+              Sign in to continue to your quizzes and dashboard.
+            </p>
+          </div>
+        </section>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-small font-medium text-foreground"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-body text-foreground placeholder:text-muted focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500"
-              placeholder="student1@example.com"
-            />
+        <Card>
+          <div className="border-b border-divider px-6 py-5">
+            <SectionTitle icon={<LogIn className="h-4 w-4" />} title="Sign in" />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-small font-medium text-foreground"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-body text-foreground placeholder:text-muted focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500"
-              placeholder="password123"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-6">
+            {error && <StatusBanner variant="error">{error}</StatusBanner>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse transition-colors duration-150 ease-out hover:bg-accent-600 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-primary-800 py-3 text-body font-semibold text-white hover:bg-primary-700"
+            >
+              {loading ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </Card>
 
         <p className="mt-6 text-center text-small text-foreground-secondary">
           Don&apos;t have an account?{" "}
@@ -118,25 +119,11 @@ export default function LoginClient() {
                 ? `/signup?redirect=${encodeURIComponent(redirect)}`
                 : "/signup"
             }
-            className="font-semibold text-accent-600 hover:text-accent-700"
+            className="font-semibold text-primary-800 hover:text-primary-700"
           >
             Create account
           </Link>
         </p>
-
-        <div className="mt-6 rounded-xl border border-border bg-surface p-4">
-          <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted">
-            Test Account
-          </p>
-          <p className="text-small text-foreground-secondary">
-            <span className="font-medium text-foreground">Email:</span>{" "}
-            student1@example.com
-          </p>
-          <p className="text-small text-foreground-secondary">
-            <span className="font-medium text-foreground">Password:</span>{" "}
-            password123
-          </p>
-        </div>
       </div>
     </div>
   );

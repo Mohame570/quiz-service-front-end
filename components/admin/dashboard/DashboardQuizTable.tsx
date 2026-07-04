@@ -1,18 +1,17 @@
 import { PaginatedQuizData, QuizStatus } from '@/types/quiz/admin';
+import { QUIZ_STATUS_COLOR } from '@/lib/quiz-status';
 import QuizCardActions from './QuizActions';
 import QuizTablePagination from './QuizTablePagination';
 
+const COLOR_CLASS_NAMES: Record<(typeof QUIZ_STATUS_COLOR)[QuizStatus], string> = {
+  success: 'text-success before:bg-success',
+  warning: 'text-warning before:bg-warning',
+  destructive: 'text-destructive before:bg-destructive',
+  'muted-foreground': 'text-muted-foreground before:bg-muted-foreground',
+};
+
 function getStatusClassName(status: QuizStatus) {
-  switch (status) {
-    case 'PUBLISHED':
-      return 'text-success before:bg-success';
-    case 'DRAFT':
-      return 'text-warning before:bg-warning';
-    case 'CLOSED':
-      return 'text-destructive before:bg-destructive';
-    case 'ARCHIVED':
-      return 'text-muted-foreground before:bg-muted-foreground';
-  }
+  return COLOR_CLASS_NAMES[QUIZ_STATUS_COLOR[status]];
 }
 
 function DashboardQuizTable({ data }: { data: PaginatedQuizData }) {

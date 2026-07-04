@@ -1,6 +1,7 @@
 import { apiFetch } from '@/lib/api/client';
 import { QuizData, PaginatedQuizData } from '@/types/quiz/admin';
 import { CreateQuizFormValues } from '@/lib/validation';
+import { getUser } from '@/lib/auth/session';
 
 export async function getAdminQuizzes(params?: {
   search?: string;
@@ -31,7 +32,6 @@ export async function updateAdminQuiz(id: string, values: CreateQuizFormValues):
     body: JSON.stringify({
       title: values.title,
       description: values.description,
-      status: values.visibilityStatus,
       durationMinutes: values.durationMinutes,
       passingScore: values.passingScore,
       ...(values.startDate ? { startsAt: values.startDate } : {}),
@@ -41,17 +41,44 @@ export async function updateAdminQuiz(id: string, values: CreateQuizFormValues):
 }
 
 export async function createAdminQuiz(values: CreateQuizFormValues): Promise<QuizData> {
+  const user = getUser();
+  if (!user?.id) {
+    throw new Error('You must be signed in as an admin to create a quiz.');
+  }
+
   return apiFetch<QuizData>('/api/admin/quizzes', {
     method: 'POST',
     body: JSON.stringify({
       title: values.title,
       description: values.description,
-      status: values.visibilityStatus,
+      status: 'DRAFT',
       durationMinutes: values.durationMinutes,
       passingScore: values.passingScore,
       ...(values.startDate ? { startsAt: values.startDate } : {}),
       ...(values.endDate ? { endsAt: values.endDate } : {}),
-      createdById: 'cmqmalcro0000zgud0fnpw5go', // to be changed
+      createdById: user.id,
     }),
+  });
+}
+
+export async function attachQuestionsToQuiz(
+  quizId: string,
+  questions: { questionId: string; order?: number }[]
+): Promise<{ quizId: string; questionId: string; order: number }[]> {
+  return apiFetch(`/api/admin/quizzes/${quizId}/questions`, {
+    method: 'POST',
+    body: JSON.stringify({ questions }),
+  });
+}
+
+export async function publishAdminQuiz(id: string): Promise<QuizData> {
+  return apiFetch<QuizData>(`/api/admin/quizzes/${id}/publish`, {
+    method: 'POST',
+  });
+}
+
+export async function unpublishAdminQuiz(id: string): Promise<QuizData> {
+  return apiFetch<QuizData>(`/api/admin/quizzes/${id}/unpublish`, {
+    method: 'POST',
   });
 }

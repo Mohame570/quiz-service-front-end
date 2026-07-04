@@ -43,7 +43,37 @@ const severityIcon: Record<string, string> = {
   danger: 'bg-error/10 text-error',
 };
 
-export default function QuizRules() {
+export default function QuizRules({ embedded = false }: { embedded?: boolean }) {
+  const content = (
+    <ul className="flex flex-col gap-2">
+      {INTEGRITY_RULES.map((rule) => (
+        <li
+          key={rule.id}
+          className={`flex items-start gap-3 rounded-xl border ${severityBorder[rule.severity]} bg-card px-3 py-2.5 text-small text-foreground`}
+        >
+          <span
+            aria-hidden
+            className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-base ${severityIcon[rule.severity]}`}
+          >
+            {rule.icon}
+          </span>
+          <span className="leading-relaxed">{rule.text}</span>
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (embedded) {
+    return (
+      <section aria-labelledby="quiz-rules-heading" className="flex flex-col gap-4">
+        <p id="quiz-rules-heading" className="text-caption font-medium text-foreground-secondary">
+          Integrity rules for this attempt
+        </p>
+        {content}
+      </section>
+    );
+  }
+
   return (
     <section
       aria-labelledby="quiz-rules-heading"
@@ -53,24 +83,9 @@ export default function QuizRules() {
         <h2 id="quiz-rules-heading" className="text-h3 text-foreground">
           Before you start
         </h2>
-        <p className="text-caption text-muted">Integrity rules for this attempt</p>
+        <p className="text-caption text-muted-foreground">Integrity rules for this attempt</p>
       </div>
-      <ul className="flex flex-col gap-2">
-        {INTEGRITY_RULES.map((rule) => (
-          <li
-            key={rule.id}
-            className={`flex items-start gap-3 rounded-xl border ${severityBorder[rule.severity]} bg-card px-3 py-2.5 text-small text-foreground`}
-          >
-            <span
-              aria-hidden
-              className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-base ${severityIcon[rule.severity]}`}
-            >
-              {rule.icon}
-            </span>
-            <span className="leading-relaxed">{rule.text}</span>
-          </li>
-        ))}
-      </ul>
+      {content}
     </section>
   );
 }

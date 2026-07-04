@@ -57,6 +57,6 @@ export const ANSWER_STATUS_STYLES: Record<
   },
   skipped: {
     row: 'border-border bg-surface',
-    label: 'text-muted',
+    label: 'text-muted-foreground',
   },
 };
