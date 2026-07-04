@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { BookOpen, Shield } from 'lucide-react';
 import { getQuiz } from '@/lib/api/student';
 import { useClientUser } from '@/lib/hooks/useClientUser';
-import { consumeQuizAddedFlash } from '@/lib/quiz-invite-flash';
+import { readInviteBannerForQuiz, type InviteBannerKind } from '@/lib/quiz-invite-flash';
 import type { QuizInstructionsDto } from '@/types/quiz/student';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
@@ -22,16 +22,26 @@ import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 export default function QuizInstructionsPage() {
   const params = useParams();
+  const router = useRouter();
   const quizId = params.quizId as string;
   const [quiz, setQuiz] = useState<QuizInstructionsDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [addedTitle, setAddedTitle] = useState<string | null>(null);
-  const user = useClientUser();
-  const needsVerification = user != null && !user.emailVerified;
+  const [inviteBanner] = useState<InviteBannerKind | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return readInviteBannerForQuiz(
+      quizId,
+      new URLSearchParams(window.location.search),
+    );
+  });
 
   useEffect(() => {
-    setAddedTitle(consumeQuizAddedFlash(quizId));
-  }, [quizId]);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('invited') !== '1') return;
+    router.replace(`/student/quiz/${quizId}`, { scroll: false });
+  }, [quizId, router]);
+
+  const user = useClientUser();
+  const needsVerification = user != null && !user.emailVerified;
 
   useEffect(() => {
     if (needsVerification) {
@@ -108,9 +118,16 @@ export default function QuizInstructionsPage() {
           ]}
         />
 
-        {addedTitle && (
+        {inviteBanner === 'new' && (
           <StatusBanner variant="success">
-            <span className="font-semibold">{addedTitle}</span> added
+            <span className="font-semibold">{quiz.title}</span> added to your
+            quizzes
+          </StatusBanner>
+        )}
+        {inviteBanner === 'existing' && (
+          <StatusBanner variant="success">
+            You&apos;re already enrolled in{' '}
+            <span className="font-semibold">{quiz.title}</span>
           </StatusBanner>
         )}
 

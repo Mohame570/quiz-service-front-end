@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { acceptQuizInvitation } from '@/lib/api/student';
+import { ApiError } from '@/lib/api/client';
 import { getUser, isAuthenticated } from '@/lib/auth/session';
-import { setQuizAddedFlash } from '@/lib/quiz-invite-flash';
+import { buildQuizInviteRedirect, stageInviteBanner } from '@/lib/quiz-invite-flash';
 import Container from '@/components/shared/Container';
 import LoadingPanel from '@/components/shared/LoadingPanel';
 import EmptyPanel from '@/components/shared/EmptyPanel';
@@ -13,6 +14,11 @@ import { Button } from '@/components/ui/button';
 import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 type Phase = 'checking' | 'accepting' | 'error' | 'verify';
+
+function isEmailVerificationError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes('email') && lower.includes('verif');
+}
 
 export default function QuizInvitePage() {
   const params = useParams();
@@ -44,16 +50,25 @@ export default function QuizInvitePage() {
       setPhase('accepting');
       try {
         const result = await acceptQuizInvitation(quizId);
-        if (result.assigned) {
-          setQuizAddedFlash(quizId, result.title);
-        }
-        router.replace(`/student/quiz/${quizId}`);
+        const kind = result.assigned ? 'new' : 'existing';
+        stageInviteBanner(quizId, kind);
+        router.replace(buildQuizInviteRedirect(quizId, kind));
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to join quiz.';
-        if (msg.includes('403')) {
-          setPhase('verify');
+        if (err instanceof ApiError && err.status === 403) {
+          if (isEmailVerificationError(err.message)) {
+            setPhase('verify');
+            return;
+          }
+          setError(
+            err.message === 'Student role required.'
+              ? 'Please sign in with a student account to accept this invitation.'
+              : err.message,
+          );
+          setPhase('error');
           return;
         }
+
+        const msg = err instanceof Error ? err.message : 'Failed to join quiz.';
         setError(msg);
         setPhase('error');
       }

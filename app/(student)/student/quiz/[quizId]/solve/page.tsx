@@ -49,19 +49,17 @@ async function resolveAttemptId(
   quizId: string,
   fromUrl: string | null,
 ): Promise<string> {
-  let id =
-    fromUrl ?? toIdOrNull(sessionStorage.getItem(attemptStorageKey(quizId)));
-  if (id) return id;
+  if (fromUrl) return fromUrl;
 
   const active = await getActiveAttempt();
   if (active.attempt?.quizId === quizId) {
-    id = readActiveAttemptId(active.attempt);
+    const id = readActiveAttemptId(active.attempt);
     if (id) return id;
   }
 
   try {
     const attempt = await startAttempt(quizId);
-    id = toIdOrNull(attempt.id);
+    const id = toIdOrNull(attempt.id);
     if (id) return id;
     throw new Error('Attempt id missing from server response.');
   } catch (err) {
@@ -72,13 +70,13 @@ async function resolveAttemptId(
 
     const retryActive = await getActiveAttempt();
     if (retryActive.attempt?.quizId === quizId) {
-      id = readActiveAttemptId(retryActive.attempt);
-      if (id) return id;
+      const retryId = readActiveAttemptId(retryActive.attempt);
+      if (retryId) return retryId;
     }
 
     const quiz = await getQuiz(quizId);
-    id = toIdOrNull(quiz.attemptId);
-    if (id) return id;
+    const quizAttemptId = toIdOrNull(quiz.attemptId);
+    if (quizAttemptId) return quizAttemptId;
 
     throw err;
   }
@@ -157,6 +155,11 @@ export default function QuizSolvePage() {
 
         if (id && isStaleAttemptError(msg)) {
           sessionStorage.removeItem(attemptStorageKey(quizId));
+          if (msg.toLowerCase().includes('attempt not found') && initialAttemptId) {
+            initRef.current = false;
+            router.replace(`/student/quiz/${quizId}/solve`);
+            return;
+          }
           router.replace(`/student/quiz/result/${id}`);
           return;
         }

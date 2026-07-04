@@ -10,6 +10,8 @@ export function isStaleAttemptError(message: string): boolean {
     lower.includes('no longer in progress') ||
     lower.includes('not in progress') ||
     lower.includes('cannot modify') ||
-    message.includes('409')
+    lower.includes('attempt not found') ||
+    message.includes('409') ||
+    message.includes('404')
   );
 }
