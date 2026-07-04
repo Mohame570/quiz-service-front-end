@@ -1,4 +1,4 @@
-export type QuestionType = 'MCQ' | 'TRUE_FALSE';
+export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'SHORT_TEXT' | 'ESSAY';
 
 export type QuestionOption = {
   id: string;
@@ -13,6 +13,14 @@ export type Question = {
 };
 
 export type StudentQuestion = {
+  id: string;
+  type: QuestionType;
+  text: string;
+  options: string[];
+  order: number;
+};
+
+export type QuestionDto = {
   id: string;
   type: QuestionType;
   text: string;

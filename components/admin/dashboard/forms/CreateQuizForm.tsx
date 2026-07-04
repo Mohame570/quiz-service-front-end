@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { CreateQuizFormInput, CreateQuizFormValues, createQuizSchema } from '@/lib/validation';
 import { createAdminQuiz } from '@/lib/api/admin/quizzes';
 import { getQuestions } from '@/lib/api/admin/questions';
+import { QUESTION_TYPE_LABELS } from '@/lib/answers';
 import { Question, StudentQuestion } from '@/types/question/question';
 import SectionTitle from './FormSectionTitle';
 import FormLabel from './FormLabel';
@@ -29,10 +30,7 @@ const DEFAULT_VALUES: CreateQuizFormInput = {
   endDate: '',
 };
 
-const TYPE_LABELS: Record<Question['type'], string> = {
-  MCQ: 'Multiple Choice',
-  TRUE_FALSE: 'True / False',
-};
+const TYPE_LABELS = QUESTION_TYPE_LABELS satisfies Record<Question['type'], string>;
 
 function CreateQuizForm() {
   const router = useRouter();

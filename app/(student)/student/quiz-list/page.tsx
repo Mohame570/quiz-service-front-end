@@ -9,6 +9,7 @@ import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
 import SectionHeader from '@/components/shared/SectionHeader';
 import { filterByTitle } from '@/lib/quiz-filter';
+import { isCompletedQuiz } from '@/lib/answer-status';
 
 const statusLabels: Record<QuizDto['attemptStatus'], string> = {
   NOT_STARTED: 'Not started',
@@ -79,10 +80,17 @@ export default function StudentQuizListPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredQuizzes.map((quiz) => (
+            {filteredQuizzes.map((quiz) => {
+              const completed =
+                isCompletedQuiz(quiz.attemptStatus) && quiz.attemptId;
+              const href = completed
+                ? `/student/quiz/result/${quiz.attemptId}`
+                : `/student/quiz/${quiz.id}`;
+
+              return (
               <Link
                 key={quiz.id}
-                href={`/student/quiz/${quiz.id}`}
+                href={href}
                 className="group flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-card transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-accent-200"
               >
                 <div className="flex h-40 items-center justify-center bg-gradient-to-br from-primary-800 via-primary-900 to-[#040C24]">
@@ -110,9 +118,17 @@ export default function StudentQuizListPage() {
                       </span>
                     </div>
                   )}
+                  {completed && (
+                    <div className="mt-auto pt-2">
+                      <span className="text-small font-semibold text-accent-600">
+                        View result →
+                      </span>
+                    </div>
+                  )}
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

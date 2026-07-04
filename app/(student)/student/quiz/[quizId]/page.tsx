@@ -4,17 +4,32 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { getQuiz } from '@/lib/api/student';
+import { useClientUser } from '@/lib/hooks/useClientUser';
+import { consumeQuizAddedFlash } from '@/lib/quiz-invite-flash';
 import type { QuizInstructionsDto } from '@/types/quiz/student';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
+import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 export default function QuizInstructionsPage() {
   const params = useParams();
   const quizId = params.quizId as string;
   const [quiz, setQuiz] = useState<QuizInstructionsDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addedTitle, setAddedTitle] = useState<string | null>(null);
+  const user = useClientUser();
+  const needsVerification = user != null && !user.emailVerified;
 
   useEffect(() => {
+    setAddedTitle(consumeQuizAddedFlash(quizId));
+  }, [quizId]);
+
+  useEffect(() => {
+    if (needsVerification) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchQuiz() {
       try {
         const data = await getQuiz(quizId);
@@ -27,7 +42,11 @@ export default function QuizInstructionsPage() {
     }
 
     fetchQuiz();
-  }, [quizId]);
+  }, [quizId, needsVerification]);
+
+  if (needsVerification) {
+    return <VerifyEmailPrompt />;
+  }
 
   if (loading) {
     return (
@@ -42,6 +61,10 @@ export default function QuizInstructionsPage() {
       <Container size="quiz">
         <div className="py-16 text-center">
           <h1 className="text-h1 text-foreground">Quiz not found</h1>
+          <p className="mx-auto mt-3 max-w-md text-body text-foreground-secondary">
+            This quiz isn&apos;t available to you. If you received an invitation,
+            open the link from your email to join the quiz first.
+          </p>
           <Link href="/student/quiz-list" className="mt-4 inline-block text-accent-600 hover:text-accent-700">
             ← Back to quiz list
           </Link>
@@ -53,11 +76,20 @@ export default function QuizInstructionsPage() {
   const canResume =
     quiz.attemptStatus === 'IN_PROGRESS' && Boolean(quiz.attemptId);
 
+  const isCompleted =
+    quiz.attemptStatus === 'SUBMITTED' && Boolean(quiz.attemptId);
+  const isTimedOut =
+    quiz.attemptStatus === 'TIMED_OUT' && Boolean(quiz.attemptId);
+
   const statusBadge = canResume
     ? 'In progress'
-    : quiz.canStart
-      ? 'Ready to start'
-      : 'Not available';
+    : isCompleted
+      ? 'Completed'
+      : isTimedOut
+        ? 'Timed out'
+        : quiz.canStart
+          ? 'Ready to start'
+          : 'Not available';
 
   return (
     <Container size="quiz">
@@ -69,6 +101,25 @@ export default function QuizInstructionsPage() {
             { label: quiz.title },
           ]}
         />
+
+        {addedTitle && (
+          <div
+            role="status"
+            className="flex items-start justify-between gap-3 rounded-xl border border-success/30 bg-success/10 px-4 py-3"
+          >
+            <p className="text-body font-medium text-success">
+              <span className="font-semibold">{addedTitle}</span> added
+            </p>
+            <button
+              type="button"
+              onClick={() => setAddedTitle(null)}
+              className="shrink-0 text-success/70 hover:text-success"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         <article className="flex flex-col gap-6 rounded-[20px] border border-border bg-card p-8">
           <header className="flex flex-col gap-3">
@@ -113,6 +164,20 @@ export default function QuizInstructionsPage() {
                   className="inline-flex items-center justify-center rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse transition-colors duration-150 ease-out hover:bg-accent-600 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500"
                 >
                   Continue quiz
+                </Link>
+              </>
+            ) : isCompleted || isTimedOut ? (
+              <>
+                <p className="text-small text-foreground-secondary">
+                  {isTimedOut
+                    ? 'Your attempt was finalised when time ran out. Review your answers and score below.'
+                    : 'You have already completed this quiz. Review your answers and score below.'}
+                </p>
+                <Link
+                  href={`/student/quiz/result/${quiz.attemptId}`}
+                  className="inline-flex items-center justify-center rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse transition-colors duration-150 ease-out hover:bg-accent-600 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500"
+                >
+                  View result
                 </Link>
               </>
             ) : quiz.canStart ? (

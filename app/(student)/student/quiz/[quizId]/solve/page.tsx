@@ -10,9 +10,19 @@ import {
   startAttempt,
   submitAttempt,
 } from '@/lib/api/student';
+import {
+  buildAnswerPayloads,
+  isTextQuestionType,
+  QUESTION_TYPE_LABELS,
+} from '@/lib/answers';
 import Container from '@/components/shared/Container';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import type { AttemptQuestion } from '@/types/attempt/attempt';
 import { isStaleAttemptError, toIdOrNull } from '@/lib/ids';
 import { useIntegrityTracking } from '@/lib/hooks/useIntegrityTracking';
+import { useClientUser } from '@/lib/hooks/useClientUser';
+import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 function readActiveAttemptId(
   attempt: { attemptId?: string; id?: string } | null | undefined,
@@ -82,9 +92,7 @@ export default function QuizSolvePage() {
 
   const [phase, setPhase] = useState<Phase>('init');
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId);
-  const [questions, setQuestions] = useState<
-    Array<{ id: string; type: 'MCQ' | 'TRUE_FALSE'; text: string; options: string[]; order: number }>
-  >([]);
+  const [questions, setQuestions] = useState<AttemptQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | null>>({});
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
@@ -92,8 +100,12 @@ export default function QuizSolvePage() {
   const [errorTitle, setErrorTitle] = useState<string>('Failed to load quiz');
   const [showIntegrityNotice, setShowIntegrityNotice] = useState(true);
 
+  const user = useClientUser();
+  const needsVerification = user != null && !user.emailVerified;
+
   const attemptIdRef = useRef<string | null>(initialAttemptId);
   const answersRef = useRef<Record<string, string | null>>({});
+  const questionsRef = useRef<AttemptQuestion[]>([]);
   const submittedRef = useRef(false);
   const initRef = useRef(false);
 
@@ -104,6 +116,7 @@ export default function QuizSolvePage() {
   });
 
   useEffect(() => {
+    if (needsVerification) return;
     if (initRef.current) return;
     initRef.current = true;
 
@@ -116,9 +129,9 @@ export default function QuizSolvePage() {
         setAttemptId(id);
 
         const data = await getAttemptQuestions(id);
-        setQuestions(
-          [...data.questions].sort((a, b) => a.order - b.order),
-        );
+        const sorted = [...data.questions].sort((a, b) => a.order - b.order);
+        setQuestions(sorted);
+        questionsRef.current = sorted;
         setSecondsLeft(data.remainingSeconds);
         setPhase('ready');
 
@@ -142,7 +155,7 @@ export default function QuizSolvePage() {
     }
 
     init();
-  }, [quizId, initialAttemptId, router]);
+  }, [quizId, initialAttemptId, router, needsVerification]);
 
   useEffect(() => {
     answersRef.current = answers;
@@ -154,11 +167,9 @@ export default function QuizSolvePage() {
       submittedRef.current = true;
       setPhase('submitting');
       try {
-        const answersArray = Object.entries(answersRef.current).map(
-          ([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          }),
+        const answersArray = buildAnswerPayloads(
+          questionsRef.current,
+          answersRef.current,
         );
         await submitAttempt(id, answersArray);
         sessionStorage.removeItem(attemptStorageKey(quizId));
@@ -203,11 +214,9 @@ export default function QuizSolvePage() {
       if (submittedRef.current) return;
 
       try {
-        const answersArray = Object.entries(answers).map(
-          ([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          }),
+        const answersArray = buildAnswerPayloads(
+          questionsRef.current,
+          answers,
         );
         await saveAnswers(attemptId, answersArray);
       } catch (err) {
@@ -233,11 +242,32 @@ export default function QuizSolvePage() {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
   };
 
+  const handleTextChange = (questionId: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  function countAnswered(
+    answerMap: Record<string, string | null>,
+    questionList: AttemptQuestion[],
+  ): number {
+    return questionList.filter((q) => {
+      const value = answerMap[q.id];
+      if (isTextQuestionType(q.type)) {
+        return (value?.trim().length ?? 0) > 0;
+      }
+      return value != null && value.length > 0;
+    }).length;
+  }
+
   const handleSubmit = () => {
     const id = attemptIdRef.current;
     if (!id || submittedRef.current) return;
     doSubmit(id);
   };
+
+  if (needsVerification) {
+    return <VerifyEmailPrompt />;
+  }
 
   if (phase === 'init' || phase === 'loading') {
     return (
@@ -269,6 +299,7 @@ export default function QuizSolvePage() {
   const currentQuestion = questions[currentIndex];
   const lowTime = secondsLeft <= 60;
   const submitting = phase === 'submitting';
+  const answeredCount = countAnswered(answers, questions);
 
   return (
     <Container size="quiz">
@@ -374,40 +405,67 @@ export default function QuizSolvePage() {
               Question {currentIndex + 1} of {questions.length}
             </span>
             <span className="text-small text-foreground-secondary">
-              {Object.keys(answers).length} answered
+              {answeredCount} answered
             </span>
           </div>
 
           <div className="mb-8">
             <span className="mb-2 inline-block rounded-full bg-accent-50 px-3 py-1 text-caption font-semibold text-accent-700">
-              {currentQuestion.type === 'MCQ' ? 'Multiple Choice' : 'True / False'}
+              {QUESTION_TYPE_LABELS[currentQuestion.type]}
             </span>
             <h2 className="text-h3 text-foreground">{currentQuestion.text}</h2>
           </div>
 
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, idx) => {
-              const optionId = option;
-              const isSelected = answers[currentQuestion.id] === optionId;
-              return (
-                <button
-                  key={optionId}
-                  onClick={() => handleSelect(currentQuestion.id, optionId)}
+          {isTextQuestionType(currentQuestion.type) ? (
+            <div>
+              {currentQuestion.type === 'SHORT_TEXT' ? (
+                <Input
+                  value={answers[currentQuestion.id] ?? ''}
+                  onChange={(e) =>
+                    handleTextChange(currentQuestion.id, e.target.value)
+                  }
                   disabled={submitting}
-                  className={`w-full rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isSelected
-                      ? 'border-2 border-accent-500 bg-accent-50'
-                      : 'border border-border bg-surface hover:border-accent-200 hover:bg-accent-50'
-                  }`}
-                >
-                  <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-border text-caption font-semibold text-foreground-secondary">
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <span className="text-body text-foreground">{option}</span>
-                </button>
-              );
-            })}
-          </div>
+                  placeholder="Type your answer..."
+                  className="text-body"
+                />
+              ) : (
+                <Textarea
+                  value={answers[currentQuestion.id] ?? ''}
+                  onChange={(e) =>
+                    handleTextChange(currentQuestion.id, e.target.value)
+                  }
+                  disabled={submitting}
+                  placeholder="Write your essay answer..."
+                  rows={8}
+                  className="text-body"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, idx) => {
+                const optionId = option;
+                const isSelected = answers[currentQuestion.id] === optionId;
+                return (
+                  <button
+                    key={optionId}
+                    onClick={() => handleSelect(currentQuestion.id, optionId)}
+                    disabled={submitting}
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                      isSelected
+                        ? 'border-2 border-accent-500 bg-accent-50'
+                        : 'border border-border bg-surface hover:border-accent-200 hover:bg-accent-50'
+                    }`}
+                  >
+                    <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-border text-caption font-semibold text-foreground-secondary">
+                      {String.fromCharCode(65 + idx)}
+                    </span>
+                    <span className="text-body text-foreground">{option}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="mt-8 flex items-center justify-between border-t border-divider pt-6">
             <button

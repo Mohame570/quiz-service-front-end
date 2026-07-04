@@ -8,6 +8,12 @@ import type { AttemptWithAnswersDto } from '@/types/attempt/attempt';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
 import { toIdOrNull } from '@/lib/ids';
+import {
+  ANSWER_STATUS_LABELS,
+  ANSWER_STATUS_STYLES,
+  getAnswerDisplayStatus,
+  hasTextAnswers,
+} from '@/lib/answer-status';
 
 type LoadState =
   | { status: 'loading' }
@@ -153,8 +159,12 @@ export default function ResultPage() {
   const passed = attempt.result?.passed === true;
   const score = attempt.score ?? 0;
   const maxScore = attempt.maxScore ?? attempt.answers.length;
-  const correctCount = attempt.answers.filter((a) => a.isCorrect === true).length;
-  const incorrectCount = attempt.answers.filter((a) => a.isCorrect === false).length;
+
+  const answerStatuses = attempt.answers.map(getAnswerDisplayStatus);
+  const correctCount = answerStatuses.filter((s) => s === 'correct').length;
+  const incorrectCount = answerStatuses.filter((s) => s === 'incorrect').length;
+  const pendingCount = answerStatuses.filter((s) => s === 'pending').length;
+  const hasPendingText = hasTextAnswers(attempt.answers);
 
   let bannerLabel = 'Result';
   let bannerClass = 'bg-accent-50 text-accent-700';
@@ -203,11 +213,23 @@ export default function ResultPage() {
             <p className="text-body text-foreground-secondary">
               {isTimedOut
                 ? 'This attempt was finalised automatically when the timer expired.'
-                : 'Your attempt has been submitted and scored.'}
+                : hasPendingText
+                  ? 'Your attempt has been submitted. Some answers are awaiting grading.'
+                  : 'Your attempt has been submitted and scored.'}
             </p>
           </header>
 
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {hasPendingText && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-small text-amber-800">
+              Short text and essay answers are saved but not auto-graded yet.
+              Your overall score reflects multiple-choice and true/false
+              questions only.
+            </div>
+          )}
+
+          <dl
+            className={`grid grid-cols-2 gap-3 ${hasPendingText ? 'sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-4'}`}
+          >
             <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
               <dt className="text-caption uppercase tracking-wide text-muted">
                 Score
@@ -229,6 +251,14 @@ export default function ResultPage() {
               </dt>
               <dd className="text-h2 text-foreground">{incorrectCount}</dd>
             </div>
+            {hasPendingText && (
+              <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
+                <dt className="text-caption uppercase tracking-wide text-muted">
+                  Pending
+                </dt>
+                <dd className="text-h2 text-foreground">{pendingCount}</dd>
+              </div>
+            )}
             <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
               <dt className="text-caption uppercase tracking-wide text-muted">
                 Percentage
@@ -253,35 +283,35 @@ export default function ResultPage() {
               <h2 className="text-h3 text-foreground">Answer breakdown</h2>
               <ul className="flex flex-col gap-2">
                 {attempt.answers.map((answer, idx) => {
-                  const isCorrect = answer.isCorrect === true;
-                  const isWrong = answer.isCorrect === false;
+                  const status = getAnswerDisplayStatus(answer);
+                  const styles = ANSWER_STATUS_STYLES[status];
+                  const displayAnswer =
+                    answer.textAnswer ??
+                    answer.selectedOptionId ??
+                    'Skipped';
+                  const truncatedAnswer =
+                    displayAnswer.length > 120
+                      ? `${displayAnswer.slice(0, 120)}…`
+                      : displayAnswer;
+
                   return (
                     <li
                       key={answer.id}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
-                        isCorrect
-                          ? 'border-success/30 bg-success/5'
-                          : isWrong
-                            ? 'border-error/30 bg-error/5'
-                            : 'border-border bg-surface'
-                      }`}
+                      className={`flex flex-col gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${styles.row}`}
                     >
                       <span className="text-small text-foreground">
                         Question {idx + 1}
                       </span>
-                      <span className="text-small font-semibold text-foreground-secondary">
-                        {answer.selectedOptionId ?? 'Skipped'}
+                      <span
+                        className="max-w-md text-small font-semibold text-foreground-secondary sm:text-right"
+                        title={displayAnswer}
+                      >
+                        {truncatedAnswer}
                       </span>
                       <span
-                        className={`text-caption font-semibold ${
-                          isCorrect
-                            ? 'text-success'
-                            : isWrong
-                              ? 'text-error'
-                              : 'text-muted'
-                        }`}
+                        className={`text-caption font-semibold ${styles.label}`}
                       >
-                        {isCorrect ? 'Correct' : isWrong ? 'Incorrect' : '—'}
+                        {ANSWER_STATUS_LABELS[status]}
                       </span>
                     </li>
                   );

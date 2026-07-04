@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api/client';
 import type { QuizDto, QuizInstructionsDto } from '@/types/quiz/student';
+import type { AcceptInvitationResponse } from '@/types/quiz/invitation';
 import type {
   ActiveAttemptResponse,
   AttemptQuestionsResponse,
@@ -15,6 +16,15 @@ export async function getQuizzes(): Promise<QuizDto[]> {
 
 export async function getQuiz(id: string): Promise<QuizInstructionsDto> {
   return apiFetch<QuizInstructionsDto>(`/api/student/quizzes/${id}`);
+}
+
+export async function acceptQuizInvitation(
+  quizId: string,
+): Promise<AcceptInvitationResponse> {
+  return apiFetch<AcceptInvitationResponse>(
+    `/api/student/quizzes/${quizId}/accept-invitation`,
+    { method: 'POST', body: JSON.stringify({}) },
+  );
 }
 
 export async function getActiveAttempt(): Promise<ActiveAttemptResponse> {

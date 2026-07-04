@@ -32,6 +32,12 @@ export type AuthResult = {
   tokens: AuthTokens;
 };
 
+export type RegisterRequest = {
+  name: string;
+  email: string;
+  password: string;
+};
+
 // POST /auth/verify-email response shape
 export type VerifyEmailResponse = {
   success: boolean;

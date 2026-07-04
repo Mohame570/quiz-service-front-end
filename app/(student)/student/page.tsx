@@ -3,18 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getActiveAttempt, getQuizzes } from "@/lib/api/student";
-import { getUser } from "@/lib/auth/session";
+import { useClientUser, userDisplayName } from "@/lib/hooks/useClientUser";
 import type { QuizDto } from "@/types/quiz/student";
 import Breadcrumb from "@/components/shared/Breadcrumb";
 import Container from "@/components/shared/Container";
 import WelcomeBanner from "@/components/shared/WelcomeBanner";
+import CompletedQuizRow from "@/components/student/CompletedQuizRow";
+import { isCompletedQuiz } from "@/lib/answer-status";
 
 export default function StudentDashboardPage() {
   const [quizzes, setQuizzes] = useState<QuizDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeAttemptId, setActiveAttemptId] = useState<string | null>(null);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
-  const user = getUser();
+  const user = useClientUser();
 
   useEffect(() => {
     async function fetchQuizzes() {
@@ -48,9 +50,8 @@ export default function StudentDashboardPage() {
   }, []);
 
   const inProgressQuiz = quizzes.find((q) => q.attemptStatus === "IN_PROGRESS");
-  const completedCount = quizzes.filter(
-    (q) => q.attemptStatus === "SUBMITTED",
-  ).length;
+  const completedQuizzes = quizzes.filter((q) => isCompletedQuiz(q.attemptStatus));
+  const completedCount = completedQuizzes.length;
 
   const resumeQuizId = activeQuizId ?? inProgressQuiz?.id ?? null;
   const resumeAttemptId = activeAttemptId ?? inProgressQuiz?.attemptId ?? null;
@@ -67,7 +68,7 @@ export default function StudentDashboardPage() {
         />
 
         <WelcomeBanner
-          name={user?.email?.split("@")[0] || "Student"}
+          name={userDisplayName(user)}
           subtitle="Pick up where you left off, browse new quizzes, and track your progress."
         />
 
@@ -110,13 +111,16 @@ export default function StudentDashboardPage() {
                   Available
                 </p>
               </article>
-              <article className="flex flex-col gap-2 rounded-[20px] border border-border bg-card p-5">
+              <article
+                id="completed-results"
+                className="flex flex-col gap-2 rounded-[20px] border border-border bg-card p-5"
+              >
                 <span className="text-caption uppercase tracking-wide text-muted">
                   Completed
                 </span>
                 <p className="text-h1 text-foreground">{completedCount}</p>
                 <p className="text-caption text-foreground-secondary">
-                  Submitted
+                  {completedCount > 0 ? "Submitted — see below" : "Submitted"}
                 </p>
               </article>
               <article className="flex flex-col gap-2 rounded-[20px] border border-border bg-card p-5">
@@ -146,6 +150,23 @@ export default function StudentDashboardPage() {
                 </p>
               </article>
             </section>
+
+            {completedQuizzes.length > 0 && (
+              <section
+                aria-label="Completed quizzes"
+                className="flex flex-col gap-3"
+              >
+                <h2 className="text-h2 text-foreground">Completed quizzes</h2>
+                <p className="text-small text-foreground-secondary">
+                  Recheck your results for finished quizzes.
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {completedQuizzes.map((quiz) => (
+                    <CompletedQuizRow key={quiz.id} quiz={quiz} />
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {inProgressQuiz && (
               <section
