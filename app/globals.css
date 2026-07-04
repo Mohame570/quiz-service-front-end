@@ -240,33 +240,29 @@
   }
 
   .stats-card {
-    @apply flex flex-col;
-  }
-
-  .stats-card-header {
-    @apply mb-4 flex items-center;
+    @apply flex flex-row items-center gap-3.5 !p-4;
   }
 
   .stats-card-icon {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-lg;
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base;
     background: rgba(67, 130, 223, 0.12);
     color: var(--color-accent-600);
   }
 
   .stats-card-content {
-    @apply flex flex-col;
+    @apply min-w-0 flex flex-col;
   }
 
   .stats-card-label {
-    @apply mb-1 text-base text-foreground-secondary;
+    @apply font-medium text-foreground;
   }
 
   .stats-card-value {
-    @apply text-4xl font-bold leading-none text-foreground;
+    @apply mt-0.5 text-2xl font-bold leading-tight text-foreground;
   }
 
   .stats-card-trend {
-    @apply mt-2 text-sm text-success;
+    @apply mt-1 text-caption text-muted-foreground;
   }
 
   .quiz-table-card {

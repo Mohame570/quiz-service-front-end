@@ -36,6 +36,40 @@ export function buildAnswerPayloads(
   );
 }
 
+export function isAnswerFilled(
+  type: QuestionType,
+  value: string | null | undefined,
+): boolean {
+  if (isTextQuestionType(type)) {
+    return (value?.trim().length ?? 0) > 0;
+  }
+  return value != null && value.length > 0;
+}
+
+export function countAnsweredQuestions(
+  questions: Array<{ id: string; type: QuestionType }>,
+  answers: Record<string, string | null | undefined>,
+): number {
+  return questions.filter((question) =>
+    isAnswerFilled(question.type, answers[question.id]),
+  ).length;
+}
+
+export function answersFromAttempt(
+  saved: Array<{
+    questionId: string;
+    selectedOptionId?: string | null;
+    textAnswer?: string | null;
+  }>,
+): Record<string, string | null> {
+  const restored: Record<string, string | null> = {};
+  for (const answer of saved) {
+    restored[answer.questionId] =
+      answer.textAnswer ?? answer.selectedOptionId ?? null;
+  }
+  return restored;
+}
+
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   MCQ: 'Multiple Choice',
   TRUE_FALSE: 'True / False',

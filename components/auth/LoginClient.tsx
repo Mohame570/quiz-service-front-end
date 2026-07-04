@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import StatusBanner from "@/components/shared/StatusBanner";
-import SectionTitle from "@/components/shared/SectionTitle";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -39,44 +38,34 @@ export default function LoginClient() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary-50/50 via-background to-background px-4 py-12">
       <div className="w-full max-w-md">
-        <section
-          aria-labelledby="login-welcome"
-          className="relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-primary-800 via-primary-900 to-[#040C24] px-8 py-7 text-inverse shadow-[0_16px_48px_rgba(15,23,42,0.18)]"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-40"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 18% 28%, rgba(67, 130, 223, 0.55) 0%, transparent 42%), radial-gradient(circle at 82% 72%, rgba(86, 89, 188, 0.4) 0%, transparent 45%)",
-            }}
-          />
-          <div className="relative flex flex-col items-center gap-4 text-center">
-            <BrandLogo variant="mark" imageClassName="h-20 max-w-[140px]" />
-            <div className="flex flex-col gap-1">
-              <p className="text-h1 font-bold text-inverse">PitIQ</p>
-              <p className="text-caption text-inverse-secondary">
-                Pause. Assess. Advance.
-              </p>
+        <div className="mb-8 flex justify-center">
+          <BrandLogo variant="full" imageClassName="h-36 max-w-[560px]" />
+        </div>
+
+        <Card className="overflow-hidden border-0 p-0 shadow-[0_1px_0_rgba(15,23,42,0.04),0_8px_32px_rgba(15,23,42,0.08)] ring-1 ring-border/70">
+          <div className="border-b border-primary-100/80 bg-primary-50/90 px-6 py-5">
+            <div className="flex items-center gap-3.5">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface text-accent-600 shadow-[0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-border/60">
+                <LogIn className="h-4 w-4" aria-hidden />
+              </span>
+              <div>
+                <h1 className="text-h3 font-semibold text-primary-800">Sign in</h1>
+                <p className="text-small text-foreground-secondary">
+                  Welcome back — continue your learning
+                </p>
+              </div>
             </div>
-            <p id="login-welcome" className="text-body text-inverse-secondary">
-              Sign in to continue to your quizzes and dashboard.
-            </p>
-          </div>
-        </section>
-
-        <Card>
-          <div className="border-b border-divider px-6 py-5">
-            <SectionTitle icon={<LogIn className="h-4 w-4" />} title="Sign in" />
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-surface px-6 py-6">
             {error && <StatusBanner variant="error">{error}</StatusBanner>}
 
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-small font-medium text-foreground">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -85,11 +74,14 @@ export default function LoginClient() {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
+                className="h-11 border-0 bg-primary-50/80 ring-1 ring-primary-100/80 transition-shadow focus-visible:border-0 focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-accent-500/40"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-small font-medium text-foreground">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -98,13 +90,14 @@ export default function LoginClient() {
                 required
                 autoComplete="current-password"
                 placeholder="Enter your password"
+                className="h-11 border-0 bg-primary-50/80 ring-1 ring-primary-100/80 transition-shadow focus-visible:border-0 focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-accent-500/40"
               />
             </div>
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-primary-800 py-3 text-body font-semibold text-white hover:bg-primary-700"
+              className="mt-1 h-11 w-full rounded-xl bg-primary-800 text-body font-semibold text-white shadow-[0_1px_2px_rgba(15,23,42,0.08),0_4px_12px_rgba(17,46,129,0.25)] transition-all hover:bg-primary-700 hover:shadow-[0_4px_16px_rgba(17,46,129,0.3)]"
             >
               {loading ? "Signing in…" : "Sign in"}
             </Button>
@@ -119,7 +112,7 @@ export default function LoginClient() {
                 ? `/signup?redirect=${encodeURIComponent(redirect)}`
                 : "/signup"
             }
-            className="font-semibold text-primary-800 hover:text-primary-700"
+            className="font-semibold text-primary-800 transition-colors hover:text-accent-600"
           >
             Create account
           </Link>

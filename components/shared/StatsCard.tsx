@@ -10,10 +10,8 @@ interface StatsCardProps {
 export default function StatsCard({ icon, label, value, trend }: StatsCardProps) {
   return (
     <Card className="stats-card w-full">
-      <div className="stats-card-header">
-        <span className="stats-card-icon">{icon}</span>
-      </div>
-      <div className="stats-card-content">
+      <span className="stats-card-icon shrink-0">{icon}</span>
+      <div className="stats-card-content min-w-0">
         <p className="stats-card-label">{label}</p>
         <h3 className="stats-card-value">{value}</h3>
         {trend && <p className="stats-card-trend">{trend}</p>}

@@ -60,6 +60,7 @@ export type AttemptQuestionsResponse = {
   expiresAt: string;
   remainingSeconds: number;
   questions: AttemptQuestion[];
+  answers?: AttemptAnswerDto[];
 };
 
 export type SaveAnswerItem =

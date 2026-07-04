@@ -10,7 +10,7 @@ import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
 import LoadingPanel from '@/components/shared/LoadingPanel';
 import EmptyPanel from '@/components/shared/EmptyPanel';
-import StatsCard from '@/components/shared/StatsCard';
+import ResultStatCard from '@/components/student/ResultStatCard';
 import StatusBanner from '@/components/shared/StatusBanner';
 import Card from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
@@ -234,30 +234,30 @@ export default function ResultPage() {
             </StatusBanner>
           )}
 
-          <section aria-label="Score summary" className="grid-auto-fit">
-            <StatsCard
+          <section aria-label="Score summary" className="grid grid-cols-2 gap-3">
+            <ResultStatCard
               icon={<Award className="h-4 w-4" />}
               label="Score"
               value={`${score} / ${maxScore}`}
             />
-            <StatsCard
+            <ResultStatCard
               icon={<CheckCircle className="h-4 w-4" />}
               label="Correct"
               value={correctCount}
             />
-            <StatsCard
+            <ResultStatCard
               icon={<XCircle className="h-4 w-4" />}
               label="Incorrect"
               value={incorrectCount}
             />
             {hasPendingText && (
-              <StatsCard
+              <ResultStatCard
                 icon={<Clock className="h-4 w-4" />}
                 label="Pending"
                 value={pendingCount}
               />
             )}
-            <StatsCard
+            <ResultStatCard
               icon={<Percent className="h-4 w-4" />}
               label="Percentage"
               value={

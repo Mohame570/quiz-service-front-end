@@ -12,6 +12,8 @@ import {
 } from '@/lib/api/student';
 import {
   buildAnswerPayloads,
+  answersFromAttempt,
+  countAnsweredQuestions,
   isTextQuestionType,
   QUESTION_TYPE_LABELS,
 } from '@/lib/answers';
@@ -140,6 +142,9 @@ export default function QuizSolvePage() {
         const sorted = [...data.questions].sort((a, b) => a.order - b.order);
         setQuestions(sorted);
         questionsRef.current = sorted;
+        if (data.answers?.length) {
+          setAnswers(answersFromAttempt(data.answers));
+        }
         setSecondsLeft(data.remainingSeconds);
         setPhase('ready');
 
@@ -254,19 +259,6 @@ export default function QuizSolvePage() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  function countAnswered(
-    answerMap: Record<string, string | null>,
-    questionList: AttemptQuestion[],
-  ): number {
-    return questionList.filter((q) => {
-      const value = answerMap[q.id];
-      if (isTextQuestionType(q.type)) {
-        return (value?.trim().length ?? 0) > 0;
-      }
-      return value != null && value.length > 0;
-    }).length;
-  }
-
   const handleSubmit = () => {
     const id = attemptIdRef.current;
     if (!id || submittedRef.current) return;
@@ -311,7 +303,7 @@ export default function QuizSolvePage() {
   const currentQuestion = questions[currentIndex];
   const lowTime = secondsLeft <= 60;
   const submitting = phase === 'submitting';
-  const answeredCount = countAnswered(answers, questions);
+  const answeredCount = countAnsweredQuestions(questions, answers);
 
   return (
     <Container size="quiz">

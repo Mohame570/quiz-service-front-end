@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Question } from '@/types/question/question';
+import { countAnsweredQuestions } from '@/lib/answers';
 import QuestionOption from '@/components/student/QuestionOption';
 import QuestionProgress from '@/components/student/QuestionProgress';
 
@@ -41,7 +42,7 @@ export default function QuestionSolver({
   const currentQuestion = questions[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === total - 1;
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = countAnsweredQuestions(questions, answers);
   const currentAnswer = answers[currentQuestion.id];
 
   const handleSelect = (optionId: string) => {
