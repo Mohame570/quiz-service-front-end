@@ -13,8 +13,12 @@ function QuizCardActions({ id, title }: { id: string; title: string }) {
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
-    await deleteAdminQuiz(id);
-    router.refresh();
+    try {
+      await deleteAdminQuiz(id);
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to delete quiz. Please try again.');
+    }
   };
 
   return (
