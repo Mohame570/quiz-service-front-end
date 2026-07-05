@@ -136,7 +136,8 @@ function CreateQuestionForm({
         return;
       }
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'Failed to create question. Please try again.',
+        message:
+          err instanceof Error ? err.message : 'Failed to create question. Please try again.',
       });
     }
   };
@@ -192,11 +193,16 @@ function CreateQuestionForm({
                   <input
                     type="radio"
                     aria-label={`Mark option ${index + 1} as correct`}
-                    checked={Boolean(options[index]?.value) && options[index]?.value === correctAnswer}
+                    checked={
+                      Boolean(options[index]?.value) && options[index]?.value === correctAnswer
+                    }
                     onChange={() => setValue('correctAnswer', options[index]?.value ?? '')}
                     className="h-4 w-4 shrink-0 accent-primary-700"
                   />
-                  <Input placeholder={`Option ${index + 1}`} {...register(`options.${index}.value` as const)} />
+                  <Input
+                    placeholder={`Option ${index + 1}`}
+                    {...register(`options.${index}.value` as const)}
+                  />
                   <button
                     type="button"
                     aria-label="Remove option"
@@ -248,7 +254,11 @@ function CreateQuestionForm({
         {type === 'SHORT_TEXT' && (
           <div className="grid gap-2">
             <Label htmlFor="q-correct-answer">Correct Answer</Label>
-            <Input id="q-correct-answer" placeholder="Expected answer" {...register('correctAnswer')} />
+            <Input
+              id="q-correct-answer"
+              placeholder="Expected answer"
+              {...register('correctAnswer')}
+            />
             <FieldError message={errors.correctAnswer?.message} />
           </div>
         )}
