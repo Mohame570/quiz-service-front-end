@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { login } from "@/lib/api/auth";
-import { getUser } from "@/lib/auth/session";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { login } from '@/lib/api/auth';
+import { getUser } from '@/lib/auth/session';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export default function LoginPage() {
       const user = getUser();
       router.push(user?.role === 'ADMIN' ? '/admin/dashboard' : '/student');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -51,9 +51,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-h1 text-foreground">PitIQ</h1>
-          <p className="mt-2 text-body text-foreground-secondary">
-            Sign in to your account
-          </p>
+          <p className="mt-2 text-body text-foreground-secondary">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,10 +62,7 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-small font-medium text-foreground"
-            >
+            <label htmlFor="email" className="mb-1.5 block text-small font-medium text-foreground">
               Email
             </label>
             <input
@@ -104,7 +99,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse transition-colors duration-150 ease-out hover:bg-accent-600 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
@@ -113,12 +108,10 @@ export default function LoginPage() {
             Test Account
           </p>
           <p className="text-small text-foreground-secondary">
-            <span className="font-medium text-foreground">Email:</span>{" "}
-            student1@example.com
+            <span className="font-medium text-foreground">Email:</span> student1@example.com
           </p>
           <p className="text-small text-foreground-secondary">
-            <span className="font-medium text-foreground">Password:</span>{" "}
-            password123
+            <span className="font-medium text-foreground">Password:</span> password123
           </p>
         </div>
       </div>

@@ -26,10 +26,7 @@ export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
-export function getUser(): LoginResponse['user'] | null {
-  const token = getToken();
-  if (!token) return null;
-
+function decodeUser(token: string): LoginResponse['user'] | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return {
@@ -41,4 +38,18 @@ export function getUser(): LoginResponse['user'] | null {
   } catch {
     return null;
   }
+}
+
+export function getUser(): LoginResponse['user'] | null {
+  const token = getToken();
+  if (!token) return null;
+  return decodeUser(token);
+}
+
+export async function getServerUser(): Promise<LoginResponse['user'] | null> {
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+  return decodeUser(token);
 }
