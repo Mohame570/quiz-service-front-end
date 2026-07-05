@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import QuizResultsTable from '@/components/admin/dashboard/QuizResultsTable';
-import { Button } from '@/components/ui/button';
+import InviteStudentsPanel from '@/components/admin/dashboard/forms/InviteStudentsPanel';
 import { getAdminQuizById } from '@/lib/api/admin/quizzes';
 import { QUIZ_STATUS_LABEL, getQuizStatusPill } from '@/lib/quiz-status';
 
@@ -39,11 +39,16 @@ export default async function ViewQuizPage({ params }: ViewQuizPageProps) {
             <p className="text-body text-foreground-secondary">{quiz.description}</p>
           </div>
 
-          <div
-            className={`flex items-center justify-center gap-2 rounded-full px-3 py-1 text-small font-medium ${statusPill.container} text-center max-w-25`}
-          >
-            <span className={`h-2 w-2 rounded-full ${statusPill.dot}`} aria-hidden="true" />
-            <p className={statusPill.text}>{QUIZ_STATUS_LABEL[quiz.status]}</p>
+          <div className="flex items-center gap-3 self-start">
+            <div
+              className={`flex items-center justify-center gap-2 rounded-full px-3 py-1 text-small font-medium ${statusPill.container} text-center max-w-25`}
+            >
+              <span className={`h-2 w-2 rounded-full ${statusPill.dot}`} aria-hidden="true" />
+              <p className={statusPill.text}>{QUIZ_STATUS_LABEL[quiz.status]}</p>
+            </div>
+            {quiz.status === 'PUBLISHED' && (
+              <InviteStudentsPanel quizId={id} quizTitle={quiz.title} />
+            )}
           </div>
         </div>
 

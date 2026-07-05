@@ -59,7 +59,7 @@ function DashboardQuizTable({ data }: { data: PaginatedQuizData }) {
                   </td>
                   <td>
                     <div className="quiz-table-actions">
-                      <QuizCardActions id={quiz.id} title={quiz.title} />
+                      <QuizCardActions id={quiz.id} title={quiz.title} status={quiz.status} />
                     </div>
                   </td>
                 </tr>

@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { deleteAdminQuiz } from '@/lib/api/admin/quizzes';
+import InviteStudentsPanel from './forms/InviteStudentsPanel';
+import { QuizStatus } from '@/types/quiz/admin';
 
-function QuizCardActions({ id, title }: { id: string; title: string }) {
+function QuizCardActions({ id, title, status }: { id: string; title: string; status: QuizStatus }) {
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -33,6 +35,7 @@ function QuizCardActions({ id, title }: { id: string; title: string }) {
       >
         Edit
       </Link>
+      {status === 'PUBLISHED' && <InviteStudentsPanel quizId={id} quizTitle={title} />}
       <button
         type="button"
         className="quiz-action-button danger"
