@@ -69,6 +69,8 @@ const questionFieldsSchema = z.object({
   quizIds: z.array(z.string()).optional(),
 });
 
+export const invitationEmailSchema = z.email('Enter a valid email address.');
+
 export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx) => {
   if (data.type === 'MCQ') {
     const opts = (data.options ?? []).map((o) => o.value.trim()).filter(Boolean);
