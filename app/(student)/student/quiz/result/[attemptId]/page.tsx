@@ -2,12 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { Award, CheckCircle, Clock, Percent, XCircle } from 'lucide-react';
 import { getAttemptResult } from '@/lib/api/student';
 import type { AttemptWithAnswersDto } from '@/types/attempt/attempt';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
+import LoadingPanel from '@/components/shared/LoadingPanel';
+import EmptyPanel from '@/components/shared/EmptyPanel';
+import ResultStatCard from '@/components/student/ResultStatCard';
+import StatusBanner from '@/components/shared/StatusBanner';
+import Card from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
 import { toIdOrNull } from '@/lib/ids';
+import {
+  ANSWER_STATUS_LABELS,
+  ANSWER_STATUS_STYLES,
+  getAnswerDisplayStatus,
+  hasTextAnswers,
+} from '@/lib/answer-status';
 
 type LoadState =
   | { status: 'loading' }
@@ -17,9 +30,39 @@ type LoadState =
   | { status: 'network'; message: string }
   | { status: 'ready'; attempt: AttemptWithAnswersDto };
 
+function ResultEmptyState({
+  title,
+  description,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  linkLabel: string;
+}) {
+  return (
+    <Container size="quiz">
+      <div className="py-8">
+        <EmptyPanel
+          title={title}
+          description={description}
+          action={
+            <Button
+              asChild
+              className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+            >
+              <Link href={href}>{linkLabel}</Link>
+            </Button>
+          }
+        />
+      </div>
+    </Container>
+  );
+}
+
 export default function ResultPage() {
   const params = useParams();
-  const router = useRouter();
   const attemptId = toIdOrNull(params.attemptId as string);
   const [state, setState] = useState<LoadState>(
     () => (attemptId ? { status: 'loading' } : { status: 'not_found' }),
@@ -63,8 +106,8 @@ export default function ResultPage() {
   if (state.status === 'loading') {
     return (
       <Container size="quiz">
-        <div className="py-16 text-center text-foreground-secondary">
-          Loading result...
+        <div className="py-8">
+          <LoadingPanel message="Loading result…" />
         </div>
       </Container>
     );
@@ -72,76 +115,53 @@ export default function ResultPage() {
 
   if (state.status === 'not_found') {
     return (
-      <Container size="quiz">
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <h1 className="text-h1 text-foreground">Result not found</h1>
-          <p className="max-w-md text-body text-foreground-secondary">
-            We couldn&apos;t find this attempt. It may have been removed.
-          </p>
-          <Link
-            href="/student/quiz-list"
-            className="mt-2 rounded-full bg-accent-500 px-6 py-2.5 text-body font-semibold text-inverse hover:bg-accent-600"
-          >
-            Back to quiz list
-          </Link>
-        </div>
-      </Container>
+      <ResultEmptyState
+        title="Result not found"
+        description="We couldn't find this attempt. It may have been removed."
+        href="/student/quiz-list"
+        linkLabel="Back to quiz list"
+      />
     );
   }
 
   if (state.status === 'forbidden') {
     return (
-      <Container size="quiz">
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <h1 className="text-h1 text-foreground">Access denied</h1>
-          <p className="max-w-md text-body text-foreground-secondary">
-            You don&apos;t have access to this result.
-          </p>
-          <Link
-            href="/student"
-            className="mt-2 rounded-full bg-accent-500 px-6 py-2.5 text-body font-semibold text-inverse hover:bg-accent-600"
-          >
-            Back to dashboard
-          </Link>
-        </div>
-      </Container>
+      <ResultEmptyState
+        title="Access denied"
+        description="You don't have access to this result."
+        href="/student"
+        linkLabel="Back to dashboard"
+      />
     );
   }
 
   if (state.status === 'still_in_progress') {
     return (
-      <Container size="quiz">
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <h1 className="text-h1 text-foreground">Attempt still in progress</h1>
-          <p className="max-w-md text-body text-foreground-secondary">
-            You haven&apos;t submitted this attempt yet. Continue solving to see your
-            result.
-          </p>
-          <button
-            onClick={() => router.push('/student/quiz-list')}
-            className="mt-2 rounded-full bg-accent-500 px-6 py-2.5 text-body font-semibold text-inverse hover:bg-accent-600"
-          >
-            Back to quiz list
-          </button>
-        </div>
-      </Container>
+      <ResultEmptyState
+        title="Attempt still in progress"
+        description="You haven't submitted this attempt yet. Continue solving to see your result."
+        href="/student/quiz-list"
+        linkLabel="Back to quiz list"
+      />
     );
   }
 
   if (state.status === 'network') {
     return (
       <Container size="quiz">
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <h1 className="text-h1 text-foreground">Connection error</h1>
-          <p className="max-w-md text-body text-foreground-secondary">
-            {state.message}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-2 rounded-full bg-accent-500 px-6 py-2.5 text-body font-semibold text-inverse hover:bg-accent-600"
-          >
-            Try again
-          </button>
+        <div className="py-8">
+          <EmptyPanel
+            title="Connection error"
+            description={state.message}
+            action={
+              <Button
+                onClick={() => window.location.reload()}
+                className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+              >
+                Try again
+              </Button>
+            }
+          />
         </div>
       </Container>
     );
@@ -153,21 +173,23 @@ export default function ResultPage() {
   const passed = attempt.result?.passed === true;
   const score = attempt.score ?? 0;
   const maxScore = attempt.maxScore ?? attempt.answers.length;
-  const correctCount = attempt.answers.filter((a) => a.isCorrect === true).length;
-  const incorrectCount = attempt.answers.filter((a) => a.isCorrect === false).length;
 
+  const answerStatuses = attempt.answers.map(getAnswerDisplayStatus);
+  const correctCount = answerStatuses.filter((s) => s === 'correct').length;
+  const incorrectCount = answerStatuses.filter((s) => s === 'incorrect').length;
+  const pendingCount = answerStatuses.filter((s) => s === 'pending').length;
+  const hasPendingText = hasTextAnswers(attempt.answers);
+
+  let bannerVariant: 'success' | 'error' | 'warning' = 'warning';
   let bannerLabel = 'Result';
-  let bannerClass = 'bg-accent-50 text-accent-700';
 
   if (isTimedOut) {
     bannerLabel = 'Timed out';
-    bannerClass = 'bg-error/10 text-error';
+    bannerVariant = 'error';
   } else if (isSubmitted) {
     if (attempt.result) {
       bannerLabel = passed ? 'Passed' : 'Did not pass';
-      bannerClass = passed
-        ? 'bg-success/10 text-success'
-        : 'bg-error/10 text-error';
+      bannerVariant = passed ? 'success' : 'error';
     } else {
       bannerLabel = 'Submitted';
     }
@@ -175,7 +197,7 @@ export default function ResultPage() {
 
   return (
     <Container size="quiz">
-      <div className="flex flex-col gap-6 py-8">
+      <div className="flex flex-col gap-8 py-8">
         <Breadcrumb
           items={[
             { label: 'PitIQ', href: '/student' },
@@ -184,13 +206,9 @@ export default function ResultPage() {
           ]}
         />
 
-        <article className="flex flex-col gap-6 rounded-[20px] border border-border bg-card p-8">
+        <Card className="flex flex-col gap-6 p-8">
           <header className="flex flex-col gap-3">
-            <span
-              className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-caption font-semibold ${bannerClass}`}
-            >
-              {bannerLabel}
-            </span>
+            <StatusBanner variant={bannerVariant}>{bannerLabel}</StatusBanner>
             <h1 className="text-h1 text-foreground">
               {isTimedOut
                 ? 'Time ran out'
@@ -203,48 +221,54 @@ export default function ResultPage() {
             <p className="text-body text-foreground-secondary">
               {isTimedOut
                 ? 'This attempt was finalised automatically when the timer expired.'
-                : 'Your attempt has been submitted and scored.'}
+                : hasPendingText
+                  ? 'Your attempt has been submitted. Some answers are awaiting grading.'
+                  : 'Your attempt has been submitted and scored.'}
             </p>
           </header>
 
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-              <dt className="text-caption uppercase tracking-wide text-muted">
-                Score
-              </dt>
-              <dd className="text-h2 text-foreground">
-                {score}
-                <span className="text-body text-muted"> / {maxScore}</span>
-              </dd>
-            </div>
-            <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-              <dt className="text-caption uppercase tracking-wide text-muted">
-                Correct
-              </dt>
-              <dd className="text-h2 text-foreground">{correctCount}</dd>
-            </div>
-            <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-              <dt className="text-caption uppercase tracking-wide text-muted">
-                Incorrect
-              </dt>
-              <dd className="text-h2 text-foreground">{incorrectCount}</dd>
-            </div>
-            <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-              <dt className="text-caption uppercase tracking-wide text-muted">
-                Percentage
-              </dt>
-              <dd className="text-h2 text-foreground">
-                {attempt.result
-                  ? `${attempt.result.percentage.toFixed(0)}%`
-                  : '—'}
-              </dd>
-            </div>
-          </dl>
+          {hasPendingText && (
+            <StatusBanner variant="warning">
+              Short text and essay answers are saved but not auto-graded yet. Your
+              overall score reflects multiple-choice and true/false questions only.
+            </StatusBanner>
+          )}
+
+          <section aria-label="Score summary" className="grid grid-cols-2 gap-3">
+            <ResultStatCard
+              icon={<Award className="h-4 w-4" />}
+              label="Score"
+              value={`${score} / ${maxScore}`}
+            />
+            <ResultStatCard
+              icon={<CheckCircle className="h-4 w-4" />}
+              label="Correct"
+              value={correctCount}
+            />
+            <ResultStatCard
+              icon={<XCircle className="h-4 w-4" />}
+              label="Incorrect"
+              value={incorrectCount}
+            />
+            {hasPendingText && (
+              <ResultStatCard
+                icon={<Clock className="h-4 w-4" />}
+                label="Pending"
+                value={pendingCount}
+              />
+            )}
+            <ResultStatCard
+              icon={<Percent className="h-4 w-4" />}
+              label="Percentage"
+              value={
+                attempt.result ? `${attempt.result.percentage.toFixed(0)}%` : '—'
+              }
+            />
+          </section>
 
           {attempt.submittedAt && (
-            <p className="text-caption text-muted">
-              Submitted{' '}
-              {new Date(attempt.submittedAt).toLocaleString()}
+            <p className="text-caption text-muted-foreground">
+              Submitted {new Date(attempt.submittedAt).toLocaleString()}
             </p>
           )}
 
@@ -253,36 +277,37 @@ export default function ResultPage() {
               <h2 className="text-h3 text-foreground">Answer breakdown</h2>
               <ul className="flex flex-col gap-2">
                 {attempt.answers.map((answer, idx) => {
-                  const isCorrect = answer.isCorrect === true;
-                  const isWrong = answer.isCorrect === false;
+                  const status = getAnswerDisplayStatus(answer);
+                  const styles = ANSWER_STATUS_STYLES[status];
+                  const displayAnswer =
+                    answer.textAnswer ??
+                    answer.selectedOptionId ??
+                    'Skipped';
+                  const truncatedAnswer =
+                    displayAnswer.length > 120
+                      ? `${displayAnswer.slice(0, 120)}…`
+                      : displayAnswer;
+
                   return (
-                    <li
-                      key={answer.id}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
-                        isCorrect
-                          ? 'border-success/30 bg-success/5'
-                          : isWrong
-                            ? 'border-error/30 bg-error/5'
-                            : 'border-border bg-surface'
-                      }`}
-                    >
-                      <span className="text-small text-foreground">
-                        Question {idx + 1}
-                      </span>
-                      <span className="text-small font-semibold text-foreground-secondary">
-                        {answer.selectedOptionId ?? 'Skipped'}
-                      </span>
-                      <span
-                        className={`text-caption font-semibold ${
-                          isCorrect
-                            ? 'text-success'
-                            : isWrong
-                              ? 'text-error'
-                              : 'text-muted'
-                        }`}
+                    <li key={answer.id}>
+                      <Card
+                        className={`flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between ${styles.row}`}
                       >
-                        {isCorrect ? 'Correct' : isWrong ? 'Incorrect' : '—'}
-                      </span>
+                        <span className="text-small font-medium text-foreground">
+                          Question {idx + 1}
+                        </span>
+                        <span
+                          className="max-w-md text-small text-foreground-secondary sm:text-right"
+                          title={displayAnswer}
+                        >
+                          {truncatedAnswer}
+                        </span>
+                        <span
+                          className={`inline-flex w-fit rounded-full px-2.5 py-1 text-caption font-semibold ${styles.label}`}
+                        >
+                          {ANSWER_STATUS_LABELS[status]}
+                        </span>
+                      </Card>
                     </li>
                   );
                 })}
@@ -291,20 +316,21 @@ export default function ResultPage() {
           )}
 
           <div className="flex flex-wrap items-center gap-3 border-t border-divider pt-6">
-            <Link
-              href="/student/quiz-list"
-              className="inline-flex items-center justify-center rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse transition-colors hover:bg-accent-600"
+            <Button
+              asChild
+              className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
             >
-              Back to quiz list
-            </Link>
-            <Link
-              href="/student"
-              className="inline-flex items-center justify-center rounded-full border border-border bg-surface px-6 py-3 text-body font-semibold text-foreground transition-colors hover:border-accent-200 hover:bg-accent-50"
+              <Link href="/student/quiz-list">Back to quiz list</Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
             >
-              Dashboard
-            </Link>
+              <Link href="/student">Dashboard</Link>
+            </Button>
           </div>
-        </article>
+        </Card>
       </div>
     </Container>
   );

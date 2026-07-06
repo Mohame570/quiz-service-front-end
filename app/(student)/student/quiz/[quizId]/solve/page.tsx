@@ -10,10 +10,29 @@ import {
   startAttempt,
   submitAttempt,
 } from '@/lib/api/student';
-import { ApiError } from '@/lib/api/client';
+import {
+  buildAnswerPayloads,
+  answersFromAttempt,
+  countAnsweredQuestions,
+  isTextQuestionType,
+  QUESTION_TYPE_LABELS,
+} from '@/lib/answers';
 import Container from '@/components/shared/Container';
+import Breadcrumb from '@/components/shared/Breadcrumb';
+import LoadingPanel from '@/components/shared/LoadingPanel';
+import EmptyPanel from '@/components/shared/EmptyPanel';
+import StatusBanner from '@/components/shared/StatusBanner';
+import Card from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import QuestionOption from '@/components/student/QuestionOption';
+import QuestionProgress from '@/components/student/QuestionProgress';
+import type { AttemptQuestion } from '@/types/attempt/attempt';
 import { isStaleAttemptError, toIdOrNull } from '@/lib/ids';
 import { useIntegrityTracking } from '@/lib/hooks/useIntegrityTracking';
+import { useClientUser } from '@/lib/hooks/useClientUser';
+import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
 function readActiveAttemptId(
   attempt: { attemptId?: string; id?: string } | null | undefined,
@@ -30,19 +49,17 @@ async function resolveAttemptId(
   quizId: string,
   fromUrl: string | null,
 ): Promise<string> {
-  let id =
-    fromUrl ?? toIdOrNull(sessionStorage.getItem(attemptStorageKey(quizId)));
-  if (id) return id;
+  if (fromUrl) return fromUrl;
 
   const active = await getActiveAttempt();
   if (active.attempt?.quizId === quizId) {
-    id = readActiveAttemptId(active.attempt);
+    const id = readActiveAttemptId(active.attempt);
     if (id) return id;
   }
 
   try {
     const attempt = await startAttempt(quizId);
-    id = toIdOrNull(attempt.id);
+    const id = toIdOrNull(attempt.id);
     if (id) return id;
     throw new Error('Attempt id missing from server response.');
   } catch (err) {
@@ -53,13 +70,13 @@ async function resolveAttemptId(
 
     const retryActive = await getActiveAttempt();
     if (retryActive.attempt?.quizId === quizId) {
-      id = readActiveAttemptId(retryActive.attempt);
-      if (id) return id;
+      const retryId = readActiveAttemptId(retryActive.attempt);
+      if (retryId) return retryId;
     }
 
     const quiz = await getQuiz(quizId);
-    id = toIdOrNull(quiz.attemptId);
-    if (id) return id;
+    const quizAttemptId = toIdOrNull(quiz.attemptId);
+    if (quizAttemptId) return quizAttemptId;
 
     throw err;
   }
@@ -83,9 +100,7 @@ export default function QuizSolvePage() {
 
   const [phase, setPhase] = useState<Phase>('init');
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId);
-  const [questions, setQuestions] = useState<
-    Array<{ id: string; type: 'MCQ' | 'TRUE_FALSE'; text: string; options: string[]; order: number }>
-  >([]);
+  const [questions, setQuestions] = useState<AttemptQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | null>>({});
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
@@ -93,8 +108,12 @@ export default function QuizSolvePage() {
   const [errorTitle, setErrorTitle] = useState<string>('Failed to load quiz');
   const [showIntegrityNotice, setShowIntegrityNotice] = useState(true);
 
+  const user = useClientUser();
+  const needsVerification = user != null && !user.emailVerified;
+
   const attemptIdRef = useRef<string | null>(initialAttemptId);
   const answersRef = useRef<Record<string, string | null>>({});
+  const questionsRef = useRef<AttemptQuestion[]>([]);
   const submittedRef = useRef(false);
   const initRef = useRef(false);
 
@@ -105,6 +124,7 @@ export default function QuizSolvePage() {
   });
 
   useEffect(() => {
+    if (needsVerification) return;
     if (initRef.current) return;
     initRef.current = true;
 
@@ -117,9 +137,12 @@ export default function QuizSolvePage() {
         setAttemptId(id);
 
         const data = await getAttemptQuestions(id);
-        setQuestions(
-          [...data.questions].sort((a, b) => a.order - b.order),
-        );
+        const sorted = [...data.questions].sort((a, b) => a.order - b.order);
+        setQuestions(sorted);
+        questionsRef.current = sorted;
+        if (data.answers?.length) {
+          setAnswers(answersFromAttempt(data.answers));
+        }
         setSecondsLeft(data.remainingSeconds);
         setPhase('ready');
 
@@ -132,6 +155,11 @@ export default function QuizSolvePage() {
 
         if (id && isStaleAttemptError(msg)) {
           sessionStorage.removeItem(attemptStorageKey(quizId));
+          if (msg.toLowerCase().includes('attempt not found') && initialAttemptId) {
+            initRef.current = false;
+            router.replace(`/student/quiz/${quizId}/solve`);
+            return;
+          }
           router.replace(`/student/quiz/result/${id}`);
           return;
         }
@@ -151,7 +179,7 @@ export default function QuizSolvePage() {
     }
 
     init();
-  }, [quizId, initialAttemptId, router]);
+  }, [quizId, initialAttemptId, router, needsVerification]);
 
   useEffect(() => {
     answersRef.current = answers;
@@ -163,11 +191,9 @@ export default function QuizSolvePage() {
       submittedRef.current = true;
       setPhase('submitting');
       try {
-        const answersArray = Object.entries(answersRef.current).map(
-          ([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          }),
+        const answersArray = buildAnswerPayloads(
+          questionsRef.current,
+          answersRef.current,
         );
         await submitAttempt(id, answersArray);
         sessionStorage.removeItem(attemptStorageKey(quizId));
@@ -212,11 +238,9 @@ export default function QuizSolvePage() {
       if (submittedRef.current) return;
 
       try {
-        const answersArray = Object.entries(answers).map(
-          ([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          }),
+        const answersArray = buildAnswerPayloads(
+          questionsRef.current,
+          answers,
         );
         await saveAnswers(attemptId, answersArray);
       } catch (err) {
@@ -242,17 +266,25 @@ export default function QuizSolvePage() {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
   };
 
+  const handleTextChange = (questionId: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
   const handleSubmit = () => {
     const id = attemptIdRef.current;
     if (!id || submittedRef.current) return;
     doSubmit(id);
   };
 
+  if (needsVerification) {
+    return <VerifyEmailPrompt />;
+  }
+
   if (phase === 'init' || phase === 'loading') {
     return (
       <Container size="quiz">
-        <div className="py-16 text-center text-foreground-secondary">
-          Starting quiz...
+        <div className="py-8">
+          <LoadingPanel message="Starting quiz…" />
         </div>
       </Container>
     );
@@ -261,15 +293,19 @@ export default function QuizSolvePage() {
   if (phase === 'error' || !attemptId || questions.length === 0) {
     return (
       <Container size="quiz">
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <h1 className="text-h1 text-foreground">{errorTitle}</h1>
-          {error && <p className="max-w-md text-body text-error">{error}</p>}
-          <button
-            onClick={() => router.push('/student/quiz-list')}
-            className="mt-4 inline-block rounded-full bg-accent-500 px-6 py-3 text-body font-semibold text-inverse hover:bg-accent-600"
-          >
-            Back to quiz list
-          </button>
+        <div className="py-8">
+          <EmptyPanel
+            title={errorTitle}
+            description={error ?? undefined}
+            action={
+              <Button
+                onClick={() => router.push('/student/quiz-list')}
+                className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+              >
+                Back to quiz list
+              </Button>
+            }
+          />
         </div>
       </Container>
     );
@@ -278,13 +314,22 @@ export default function QuizSolvePage() {
   const currentQuestion = questions[currentIndex];
   const lowTime = secondsLeft <= 60;
   const submitting = phase === 'submitting';
+  const answeredCount = countAnsweredQuestions(questions, answers);
 
   return (
     <Container size="quiz">
-      <div className="flex flex-col gap-6 py-8">
+      <div className="flex flex-col gap-8 py-8">
+        <Breadcrumb
+          items={[
+            { label: 'PitIQ', href: '/student' },
+            { label: 'Quiz List', href: '/student/quiz-list' },
+            { label: 'Solving' },
+          ]}
+        />
+
         <header className="flex items-center justify-between">
           <div>
-            <p className="text-caption uppercase tracking-wide text-muted">
+            <p className="text-caption uppercase tracking-wide text-muted-foreground">
               Solving
             </p>
             <h1 className="text-h2 text-foreground">Quiz Attempt</h1>
@@ -316,138 +361,126 @@ export default function QuizSolvePage() {
               </svg>
               {formatTime(secondsLeft)}
             </span>
-            <button
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => router.push('/student/quiz-list')}
-              className="rounded-full border border-border bg-surface px-4 py-2 text-small font-semibold text-foreground hover:bg-accent-50"
+              className="rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
             >
               Quit
-            </button>
+            </Button>
           </div>
         </header>
 
-        {/* Anti-cheat integrity notice */}
         {showIntegrityNotice && (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mt-0.5 shrink-0 text-amber-600"
-              aria-hidden
-            >
-              <path d="M10 1.5 3 4.5v5.5c0 4.5 3 8.8 7 9.5 4-.7 7-5 7-9.5V4.5Z" />
-              <path d="m7 10 2 2 4-4" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-amber-800">
-                Integrity monitoring active
-              </p>
-              <p className="text-xs text-amber-600">
-                Switching tabs, copying text, exiting fullscreen, or losing
-                window focus during this quiz will be recorded and may flag
-                your attempt for review.
-              </p>
-            </div>
+          <div className="relative">
+            <StatusBanner variant="warning">
+              <span className="font-medium">Integrity monitoring active.</span>{' '}
+              Switching tabs, copying text, exiting fullscreen, or losing window
+              focus during this quiz will be recorded and may flag your attempt
+              for review.
+            </StatusBanner>
             <button
+              type="button"
               onClick={() => setShowIntegrityNotice(false)}
-              className="shrink-0 text-amber-500 hover:text-amber-700"
+              className="absolute top-3 right-3 text-warning/70 hover:text-warning"
               aria-label="Dismiss integrity notice"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              ×
             </button>
           </div>
         )}
 
-        <div className="rounded-[20px] border border-border bg-card p-8">
-          <div className="mb-6 flex items-center justify-between">
-            <span className="text-small text-foreground-secondary">
-              Question {currentIndex + 1} of {questions.length}
-            </span>
-            <span className="text-small text-foreground-secondary">
-              {Object.keys(answers).length} answered
-            </span>
+        <Card className="p-8">
+          <div className="mb-6">
+            <QuestionProgress
+              current={currentIndex}
+              total={questions.length}
+              answeredCount={answeredCount}
+            />
           </div>
 
           <div className="mb-8">
             <span className="mb-2 inline-block rounded-full bg-accent-50 px-3 py-1 text-caption font-semibold text-accent-700">
-              {currentQuestion.type === 'MCQ' ? 'Multiple Choice' : 'True / False'}
+              {QUESTION_TYPE_LABELS[currentQuestion.type]}
             </span>
             <h2 className="text-h3 text-foreground">{currentQuestion.text}</h2>
           </div>
 
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, idx) => {
-              const optionId = option;
-              const isSelected = answers[currentQuestion.id] === optionId;
-              return (
-                <button
-                  key={optionId}
-                  onClick={() => handleSelect(currentQuestion.id, optionId)}
+          {isTextQuestionType(currentQuestion.type) ? (
+            <div>
+              {currentQuestion.type === 'SHORT_TEXT' ? (
+                <Input
+                  value={answers[currentQuestion.id] ?? ''}
+                  onChange={(e) =>
+                    handleTextChange(currentQuestion.id, e.target.value)
+                  }
                   disabled={submitting}
-                  className={`w-full rounded-xl border px-4 py-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                    isSelected
-                      ? 'border-2 border-accent-500 bg-accent-50'
-                      : 'border border-border bg-surface hover:border-accent-200 hover:bg-accent-50'
-                  }`}
-                >
-                  <span className="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-border text-caption font-semibold text-foreground-secondary">
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <span className="text-body text-foreground">{option}</span>
-                </button>
-              );
-            })}
-          </div>
+                  placeholder="Type your answer..."
+                  className="text-body"
+                />
+              ) : (
+                <Textarea
+                  value={answers[currentQuestion.id] ?? ''}
+                  onChange={(e) =>
+                    handleTextChange(currentQuestion.id, e.target.value)
+                  }
+                  disabled={submitting}
+                  placeholder="Write your essay answer..."
+                  rows={8}
+                  className="text-body"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, idx) => (
+                <QuestionOption
+                  key={option}
+                  option={{ id: option, text: option }}
+                  isSelected={answers[currentQuestion.id] === option}
+                  onSelect={(id) => handleSelect(currentQuestion.id, id)}
+                  optionLabel={String.fromCharCode(65 + idx)}
+                  disabled={submitting}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="mt-8 flex items-center justify-between border-t border-divider pt-6">
-            <button
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
               disabled={currentIndex === 0 || submitting}
-              className="rounded-full border border-border bg-surface px-5 py-2.5 text-body font-semibold text-foreground hover:bg-accent-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
             >
               ← Previous
-            </button>
+            </Button>
 
             {currentIndex === questions.length - 1 ? (
-              <button
+              <Button
+                type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="rounded-full bg-success px-6 py-2.5 text-body font-semibold text-inverse hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-success px-6 text-white hover:bg-success/90"
               >
-                {submitting ? 'Submitting...' : 'Submit quiz'}
-              </button>
+                {submitting ? 'Submitting…' : 'Submit quiz'}
+              </Button>
             ) : (
-              <button
+              <Button
+                type="button"
                 onClick={() =>
                   setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))
                 }
                 disabled={submitting}
-                className="rounded-full bg-accent-500 px-6 py-2.5 text-body font-semibold text-inverse hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
               >
                 Next →
-              </button>
+              </Button>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </Container>
   );

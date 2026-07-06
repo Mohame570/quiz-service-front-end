@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { verifyEmail, resendVerification } from "@/lib/api/auth";
+import { getUser, setUserMeta } from "@/lib/auth/session";
 import { VERIFICATION_STATUS, type VerificationState } from "@/types/auth";
 import Link from "next/link";
 
@@ -46,6 +47,14 @@ export default function VerifyEmailClient() {
       .then((result) => {
         if (cancelled) return;
         if (result.success) {
+          const user = getUser();
+          if (user) {
+            setUserMeta({
+              email: user.email,
+              emailVerified: true,
+              role: user.role,
+            });
+          }
           setState({ status: VERIFICATION_STATUS.VERIFIED });
         } else {
           setState({

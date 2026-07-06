@@ -1,3 +1,5 @@
+import type { QuestionType } from '@/types/question/question';
+
 export type AttemptStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'TIMED_OUT' | 'ABANDONED';
 
 export type AttemptDto = {
@@ -19,6 +21,7 @@ export type AttemptAnswerDto = {
   attemptId: string;
   questionId: string;
   selectedOptionId: string | null;
+  textAnswer: string | null;
   isCorrect: boolean | null;
   answeredAt: string;
 };
@@ -43,30 +46,31 @@ export type ActiveAttemptResponse = {
   } | null;
 };
 
+export type AttemptQuestion = {
+  id: string;
+  type: QuestionType;
+  text: string;
+  options: string[];
+  order: number;
+};
+
 export type AttemptQuestionsResponse = {
   attemptId: string;
   quizId: string;
   expiresAt: string;
   remainingSeconds: number;
-  questions: Array<{
-    id: string;
-    type: 'MCQ' | 'TRUE_FALSE';
-    text: string;
-    options: string[];
-    order: number;
-  }>;
+  questions: AttemptQuestion[];
+  answers?: AttemptAnswerDto[];
 };
 
+export type SaveAnswerItem =
+  | { questionId: string; selectedOptionId: string | null }
+  | { questionId: string; textAnswer: string | null };
+
 export type SaveAnswersRequest = {
-  answers: Array<{
-    questionId: string;
-    selectedOptionId: string | null;
-  }>;
+  answers: SaveAnswerItem[];
 };
 
 export type SubmitAttemptRequest = {
-  answers?: Array<{
-    questionId: string;
-    selectedOptionId: string | null;
-  }>;
+  answers?: SaveAnswerItem[];
 };

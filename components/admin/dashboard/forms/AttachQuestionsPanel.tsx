@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { ApiError } from '@/lib/api/client';
 import { getQuestions } from '@/lib/api/admin/questions';
 import { attachQuestionsToQuiz, publishAdminQuiz } from '@/lib/api/admin/quizzes';
+import { QUESTION_TYPE_LABELS } from '@/lib/answers';
 import { QuestionDto, QuestionType } from '@/types/question/question';
 import { QuizStatus } from '@/types/quiz/admin';
 import SectionTitle from './FormSectionTitle';

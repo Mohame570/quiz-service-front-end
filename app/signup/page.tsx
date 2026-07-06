@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import LoginClient from "@/components/auth/LoginClient";
+import SignupClient from "@/components/auth/SignupClient";
 import AuthPageFallback from "@/components/auth/AuthPageFallback";
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <Suspense fallback={<AuthPageFallback />}>
-      <LoginClient />
+      <SignupClient />
     </Suspense>
   );
 }

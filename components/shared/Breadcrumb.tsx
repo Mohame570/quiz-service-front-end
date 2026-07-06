@@ -11,7 +11,7 @@ type BreadcrumbProps = {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-caption text-muted">
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-caption text-foreground-secondary">
       {items.map((item, idx) => {
         const isLast = idx === items.length - 1;
         return (
@@ -28,7 +28,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
                 {item.label}
               </span>
             )}
-            {!isLast && <span aria-hidden className="text-muted">/</span>}
+            {!isLast && <span aria-hidden className="text-muted-foreground">/</span>}
           </span>
         );
       })}

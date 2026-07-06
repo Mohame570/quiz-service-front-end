@@ -9,8 +9,10 @@
   --card: oklch(1 0 0);
   --border: oklch(0.922 0 0);
   --divider: #eef1f6;
-  --foreground-secondary: #475569;
+  --foreground-secondary: #334155;
   --muted: oklch(0.97 0 0);
+  --inverse: #ffffff;
+  --inverse-secondary: rgba(255, 255, 255, 0.78);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -20,7 +22,7 @@
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #64748b;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -238,33 +240,29 @@
   }
 
   .stats-card {
-    @apply flex flex-col;
-  }
-
-  .stats-card-header {
-    @apply mb-4 flex items-center;
+    @apply flex flex-row items-center gap-3.5 !p-4;
   }
 
   .stats-card-icon {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-lg;
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base;
     background: rgba(67, 130, 223, 0.12);
     color: var(--color-accent-600);
   }
 
   .stats-card-content {
-    @apply flex flex-col;
+    @apply min-w-0 flex flex-col;
   }
 
   .stats-card-label {
-    @apply mb-1 text-base text-foreground-secondary;
+    @apply font-medium text-foreground;
   }
 
   .stats-card-value {
-    @apply text-4xl font-bold leading-none text-foreground;
+    @apply mt-0.5 text-2xl font-bold leading-tight text-foreground;
   }
 
   .stats-card-trend {
-    @apply mt-2 text-sm text-success;
+    @apply mt-1 text-caption text-muted-foreground;
   }
 
   .quiz-table-card {
@@ -363,6 +361,9 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
+  --foreground-secondary: #cbd5e1;
+  --inverse: #ffffff;
+  --inverse-secondary: rgba(255, 255, 255, 0.78);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -372,7 +373,7 @@
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  --muted-foreground: #94a3b8;
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
