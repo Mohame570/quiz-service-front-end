@@ -2,15 +2,16 @@ import { apiFetch } from '@/lib/api/client';
 import { QuizData, QuizDetail, QuizStatus, PaginatedQuizData } from '@/types/quiz/admin';
 import { CreateQuizFormValues } from '@/lib/validation';
 import { getUser } from '@/lib/auth/session';
+import { toApiStatusParam } from '@/lib/quiz-status';
 
 export async function getAdminQuizzes(params?: {
   search?: string;
-  status?: string;
+  status?: QuizStatus;
   page?: number;
 }): Promise<PaginatedQuizData> {
   const query = new URLSearchParams();
   if (params?.search) query.set('search', params.search);
-  if (params?.status) query.set('status', params.status);
+  if (params?.status) query.set('status', toApiStatusParam(params.status));
   if (params?.page) query.set('page', String(params.page));
   const qs = query.toString();
   return apiFetch<PaginatedQuizData>(`/api/admin/quizzes${qs ? `?${qs}` : ''}`);
@@ -51,7 +52,7 @@ export async function createAdminQuiz(values: CreateQuizFormValues): Promise<Qui
     body: JSON.stringify({
       title: values.title,
       description: values.description,
-      status: 'DRAFT',
+      status: toApiStatusParam('DRAFT'),
       durationMinutes: values.durationMinutes,
       passingScore: values.passingScore,
       ...(values.startDate ? { startsAt: values.startDate } : {}),
@@ -86,7 +87,7 @@ export async function unpublishAdminQuiz(id: string): Promise<QuizData> {
 export async function updateAdminQuizStatus(id: string, status: QuizStatus): Promise<QuizData> {
   return apiFetch<QuizData>(`/api/admin/quizzes/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status: toApiStatusParam(status) }),
   });
 }
 

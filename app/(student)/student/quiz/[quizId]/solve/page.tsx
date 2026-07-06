@@ -10,6 +10,7 @@ import {
   startAttempt,
   submitAttempt,
 } from '@/lib/api/student';
+import { ApiError } from '@/lib/api/client';
 import Container from '@/components/shared/Container';
 import { isStaleAttemptError, toIdOrNull } from '@/lib/ids';
 import { useIntegrityTracking } from '@/lib/hooks/useIntegrityTracking';
@@ -132,6 +133,14 @@ export default function QuizSolvePage() {
         if (id && isStaleAttemptError(msg)) {
           sessionStorage.removeItem(attemptStorageKey(quizId));
           router.replace(`/student/quiz/result/${id}`);
+          return;
+        }
+
+        if (err instanceof ApiError && err.status === 404) {
+          console.error('Quiz no longer available:', err);
+          setErrorTitle('Quiz unavailable');
+          setError('This quiz is no longer available.');
+          setPhase('error');
           return;
         }
 
