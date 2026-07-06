@@ -11,7 +11,6 @@ type EditQuizPageProps = {
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
   const quiz = await getAdminQuizById(id);
-  console.log({ quiz });
   if (!quiz) return null;
 
   const statusPill = getQuizStatusPill(quiz.status);
