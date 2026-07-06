@@ -35,7 +35,7 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
   const [isDeleting, setIsDeleting] = useState(false);
   const initialStatus = defaultValues.status;
   const isPublished = initialStatus === 'PUBLISHED';
-  console.log({ hasAttempts });
+
   const form = useForm<EditQuizFormInput, undefined, EditQuizFormValues>({
     resolver: zodResolver(editQuizSchema),
     defaultValues,
