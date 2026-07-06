@@ -31,3 +31,7 @@ export const QUIZ_STATUS_PILL_CLASSES: Record<
 export function getQuizStatusPill(status: QuizStatus) {
   return QUIZ_STATUS_PILL_CLASSES[QUIZ_STATUS_COLOR[status]];
 }
+
+export function toApiStatusParam(status: QuizStatus): string {
+  return status.toLowerCase();
+}

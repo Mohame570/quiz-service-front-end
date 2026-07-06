@@ -4,32 +4,40 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { getQuiz } from '@/lib/api/student';
+import { ApiError } from '@/lib/api/client';
 import type { QuizInstructionsDto } from '@/types/quiz/student';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
 
+type PageState =
+  | { status: 'loading' }
+  | { status: 'ready'; quiz: QuizInstructionsDto }
+  | { status: 'error'; message: string };
+
 export default function QuizInstructionsPage() {
   const params = useParams();
   const quizId = params.quizId as string;
-  const [quiz, setQuiz] = useState<QuizInstructionsDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<PageState>({ status: 'loading' });
 
   useEffect(() => {
     async function fetchQuiz() {
       try {
         const data = await getQuiz(quizId);
-        setQuiz(data);
+        setState({ status: 'ready', quiz: data });
       } catch (err) {
         console.error('Failed to fetch quiz:', err);
-      } finally {
-        setLoading(false);
+        const message =
+          err instanceof ApiError && err.status === 404
+            ? 'This quiz is no longer available.'
+            : 'Failed to load quiz. Please try again.';
+        setState({ status: 'error', message });
       }
     }
 
     fetchQuiz();
   }, [quizId]);
 
-  if (loading) {
+  if (state.status === 'loading') {
     return (
       <Container size="quiz">
         <div className="py-16 text-center text-foreground-secondary">Loading quiz...</div>
@@ -37,11 +45,12 @@ export default function QuizInstructionsPage() {
     );
   }
 
-  if (!quiz) {
+  if (state.status === 'error') {
     return (
       <Container size="quiz">
         <div className="py-16 text-center">
-          <h1 className="text-h1 text-foreground">Quiz not found</h1>
+          <h1 className="text-h1 text-foreground">Quiz unavailable</h1>
+          <p className="mt-2 text-body text-foreground-secondary">{state.message}</p>
           <Link href="/student/quiz-list" className="mt-4 inline-block text-accent-600 hover:text-accent-700">
             ← Back to quiz list
           </Link>
@@ -49,6 +58,8 @@ export default function QuizInstructionsPage() {
       </Container>
     );
   }
+
+  const quiz = state.quiz;
 
   const canResume =
     quiz.attemptStatus === 'IN_PROGRESS' && Boolean(quiz.attemptId);
