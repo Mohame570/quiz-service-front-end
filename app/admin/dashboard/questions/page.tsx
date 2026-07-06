@@ -1,8 +1,15 @@
 import QuestionBankView from '@/components/admin/dashboard/QuestionBankView';
 import { getQuestions } from '@/lib/api/admin/questions';
+import { QuestionDto } from '@/types/question/question';
 
 export default async function QuestionBankPage() {
-  const questions = await getQuestions();
+  let questions: QuestionDto[] = [];
+  let loadError: string | null = null;
+  try {
+    questions = await getQuestions();
+  } catch (err) {
+    loadError = err instanceof Error ? err.message : 'Failed to load questions. Please try again.';
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -14,7 +21,11 @@ export default async function QuestionBankPage() {
           </p>
         </div>
 
-        <QuestionBankView initialQuestions={questions} />
+        {loadError ? (
+          <p className="text-small text-error">{loadError}</p>
+        ) : (
+          <QuestionBankView initialQuestions={questions} />
+        )}
       </section>
     </main>
   );

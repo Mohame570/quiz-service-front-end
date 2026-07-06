@@ -21,6 +21,8 @@ export type QuizData = {
   updatedAt: string;
 };
 
+export type QuizDetail = QuizData & { hasAttempts: boolean };
+
 export type PaginatedQuizData = {
   quizzes: QuizData[];
   page: number;

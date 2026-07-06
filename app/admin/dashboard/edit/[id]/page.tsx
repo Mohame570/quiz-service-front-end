@@ -11,7 +11,6 @@ type EditQuizPageProps = {
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
   const quiz = await getAdminQuizById(id);
-
   if (!quiz) return null;
 
   const statusPill = getQuizStatusPill(quiz.status);
@@ -60,6 +59,7 @@ export default async function EditPage({ params }: EditQuizPageProps) {
 
         <EditQuizForm
           id={id}
+          hasAttempts={quiz.hasAttempts}
           title={quiz.title}
           description={quiz.description}
           status={quiz.status}
