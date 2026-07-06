@@ -1,4 +1,4 @@
-import { QuizStatus } from '@/types/quiz/admin';
+import { QuizData, QuizStatus } from '@/types/quiz/admin';
 
 export const QUIZ_STATUS_LABEL: Record<QuizStatus, string> = {
   PUBLISHED: 'Published',
@@ -34,4 +34,31 @@ export function getQuizStatusPill(status: QuizStatus) {
 
 export function toApiStatusParam(status: QuizStatus): string {
   return status.toLowerCase();
+}
+
+export type ScheduleCandidate = 'future' | 'elapsed' | null;
+export type QuizScheduleState = 'SCHEDULED' | 'MISSED_SCHEDULE' | null;
+
+// Pure, date-only classification, no API call. Also used to decide which
+// quiz ids need an extra getQuestions({ quizId }) check (only 'elapsed' ones) —
+// a DRAFT quiz with both startsAt/endsAt set auto-publishes once startsAt
+// passes, unless it has no questions, in which case it's skipped and stays
+// DRAFT indefinitely.
+export function getDraftScheduleCandidate(
+  quiz: Pick<QuizData, 'status' | 'startsAt' | 'endsAt'>
+): ScheduleCandidate {
+  if (quiz.status !== 'DRAFT' || !quiz.startsAt || !quiz.endsAt) return null;
+  return new Date(quiz.startsAt).getTime() > Date.now() ? 'future' : 'elapsed';
+}
+
+// hasQuestions is only consulted when candidate === 'elapsed'; if it's true
+// or unchecked (undefined), fail open to null rather than risk a false
+// MISSED_SCHEDULE warning.
+export function getQuizScheduleState(
+  candidate: ScheduleCandidate,
+  hasQuestions?: boolean
+): QuizScheduleState {
+  if (candidate === null) return null;
+  if (candidate === 'future') return 'SCHEDULED';
+  return hasQuestions === false ? 'MISSED_SCHEDULE' : null;
 }

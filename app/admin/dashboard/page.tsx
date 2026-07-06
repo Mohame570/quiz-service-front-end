@@ -6,6 +6,8 @@ import DashboardQuizTable from '@/components/admin/dashboard/DashboardQuizTable'
 import { DASHBOARD_STATS } from '@/constants';
 import { searchParamsProps } from '@/types';
 import { getAdminQuizzes } from '@/lib/api/admin/quizzes';
+import { getQuestions } from '@/lib/api/admin/questions';
+import { getDraftScheduleCandidate, getQuizScheduleState, QuizScheduleState } from '@/lib/quiz-status';
 import { PaginatedQuizData } from '@/types/quiz/admin';
 
 const VALID_FILTERS = ['all', 'PUBLISHED', 'DRAFT', 'CLOSED', 'ARCHIVED'] as const;
@@ -48,6 +50,25 @@ async function Dashboard({ searchParams }: searchParamsProps) {
     loadError = err instanceof Error ? err.message : 'Failed to load quizzes. Please try again.';
   }
 
+  const scheduleStateById: Record<string, QuizScheduleState> = {};
+  if (data) {
+    const elapsedIds = data.quizzes
+      .filter((q) => getDraftScheduleCandidate(q) === 'elapsed')
+      .map((q) => q.id);
+
+    const hasQuestionsById = new Map<string, boolean>();
+    if (elapsedIds.length > 0) {
+      const results = await Promise.allSettled(elapsedIds.map((id) => getQuestions({ quizId: id })));
+      results.forEach((r, i) => {
+        hasQuestionsById.set(elapsedIds[i], r.status === 'fulfilled' ? r.value.length > 0 : true);
+      });
+    }
+
+    data.quizzes.forEach((q) => {
+      scheduleStateById[q.id] = getQuizScheduleState(getDraftScheduleCandidate(q), hasQuestionsById.get(q.id));
+    });
+  }
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10">
@@ -69,7 +90,7 @@ async function Dashboard({ searchParams }: searchParamsProps) {
         {loadError ? (
           <p className="text-small text-error">{loadError}</p>
         ) : (
-          <DashboardQuizTable data={data as PaginatedQuizData} />
+          <DashboardQuizTable data={data as PaginatedQuizData} scheduleStateById={scheduleStateById} />
         )}
       </section>
     </main>
