@@ -38,7 +38,7 @@ function DashboardFilter() {
   return (
     <div className="w-full max-w-md lg:self-end">
       <div
-        className="flex w-full max-w-full gap-1 rounded-2xl border border-border bg-surface/90 p-1"
+        className="flex flex-wrap w-full max-w-full gap-1 rounded-2xl border border-border bg-surface/90 p-1"
         role="tablist"
         aria-label="Quiz status filters"
       >

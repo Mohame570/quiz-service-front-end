@@ -21,6 +21,7 @@ type EditQuizFormProps = EditQuizFormInput & { id: string };
 function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
   const router = useRouter();
   const initialStatus = defaultValues.status;
+  const isPublished = initialStatus === 'PUBLISHED';
 
   const form = useForm<EditQuizFormInput, undefined, EditQuizFormValues>({
     resolver: zodResolver(editQuizSchema),
@@ -39,6 +40,12 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
       await updateAdminQuiz(id, values);
       if (initialStatus === 'PUBLISHED' && values.status === 'DRAFT') {
         await unpublishAdminQuiz(id);
+        if (redirectTo === 'questions') {
+          router.push(`/admin/dashboard/edit/${id}/questions`);
+          return;
+        }
+        router.refresh();
+        return;
       }
       router.push(
         redirectTo === 'questions' ? `/admin/dashboard/edit/${id}/questions` : '/admin/dashboard'
@@ -52,6 +59,13 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
 
   return (
     <form onSubmit={handleSubmit((values) => submit(values, 'questions'))} className="grid gap-6">
+      {isPublished && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-small text-amber-700">
+          This quiz is published, so its content is locked. Switch the status to Draft below to
+          edit it.
+        </div>
+      )}
+
       <Card>
         <div className="border-b border-divider px-6 py-5">
           <SectionTitle icon={<BookCopy className="h-4 w-4" />} title="Quiz Identity" />
@@ -66,6 +80,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
               id="title"
               placeholder="e.g. Advanced Calculus Final Examination"
               aria-invalid={Boolean(errors.title)}
+              disabled={isPublished}
               {...register('title')}
             />
             <FieldError message={errors.title?.message} />
@@ -77,6 +92,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
               id="description"
               placeholder="Briefly describe the learning outcomes and scope of this assessment..."
               aria-invalid={Boolean(errors.description)}
+              disabled={isPublished}
               {...register('description')}
             />
             <FieldError message={errors.description?.message} />
@@ -100,6 +116,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
                 step={1}
                 placeholder="60"
                 aria-invalid={Boolean(errors.durationMinutes)}
+                disabled={isPublished}
                 {...register('durationMinutes')}
               />
               <FieldError message={errors.durationMinutes?.message} />
@@ -115,6 +132,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
                 step={1}
                 placeholder="70"
                 aria-invalid={Boolean(errors.passingScore)}
+                disabled={isPublished}
                 {...register('passingScore')}
               />
               <FieldError message={errors.passingScore?.message} />
@@ -139,7 +157,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
                 <option value={initialStatus}>{QUIZ_STATUS_LABEL[initialStatus]}</option>
               )}
             </select>
-            {initialStatus !== 'PUBLISHED' && (
+            {!isPublished && (
               <p className="text-small text-muted-foreground">
                 Publish this quiz from the Manage Questions page once it has attached questions.
               </p>
@@ -154,6 +172,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
                 id="startDate"
                 type="date"
                 aria-invalid={Boolean(errors.startDate)}
+                disabled={isPublished}
                 {...register('startDate')}
               />
               <FieldError message={errors.startDate?.message} />
@@ -165,6 +184,7 @@ function EditQuizForm({ id, ...defaultValues }: EditQuizFormProps) {
                 id="endDate"
                 type="date"
                 aria-invalid={Boolean(errors.endDate)}
+                disabled={isPublished}
                 {...register('endDate')}
               />
               <FieldError message={errors.endDate?.message} />

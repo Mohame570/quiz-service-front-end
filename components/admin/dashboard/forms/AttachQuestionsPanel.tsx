@@ -16,8 +16,14 @@ import { QuestionDto, QuestionType } from '@/types/question/question';
 import { QuizStatus } from '@/types/quiz/admin';
 import SectionTitle from './FormSectionTitle';
 import FieldError from './FormFieldError';
+import CreateQuestionForm from './CreateQuestionForm';
 
-const TYPE_LABELS = QUESTION_TYPE_LABELS;
+const TYPE_LABELS: Record<QuestionType, string> = {
+  MCQ: 'Multiple Choice',
+  TRUE_FALSE: 'True / False',
+  SHORT_TEXT: 'Short Text',
+  ESSAY: 'Essay',
+};
 
 type SelectedEntry = { question: QuestionDto; order: number };
 
@@ -268,62 +274,68 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                   Question bank
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="rounded-2xl border border-border bg-surface p-1">
-                    <div className="grid grid-cols-2 gap-1">
-                      {(
-                        [
-                          { key: true, label: 'Unassigned only' },
-                          { key: false, label: 'All questions' },
-                        ] as const
-                      ).map((option) => {
-                        const isActive = unassignedOnly === option.key;
-                        return (
-                          <button
-                            key={String(option.key)}
-                            type="button"
-                            onClick={() => setUnassignedOnly(option.key)}
-                            className={cn(
-                              'rounded-xl px-3 py-2 text-caption font-medium transition-colors duration-150',
-                              isActive
-                                ? 'bg-primary-800 text-white'
-                                : 'text-foreground-secondary hover:bg-primary-50 hover:text-primary-800'
-                            )}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                <CreateQuestionForm
+                  onCreated={(question) => setBankQuestions((prev) => [question, ...prev])}
+                />
+              </div>
 
-                  <div className="rounded-2xl border border-border bg-surface p-1">
-                    <div className="grid grid-cols-3 gap-1">
-                      {(
-                        [
-                          { key: 'ALL', label: 'All' },
-                          { key: 'MCQ', label: 'MCQ' },
-                          { key: 'TRUE_FALSE', label: 'True/False' },
-                        ] as const
-                      ).map((option) => {
-                        const isActive = typeFilter === option.key;
-                        return (
-                          <button
-                            key={option.key}
-                            type="button"
-                            onClick={() => setTypeFilter(option.key)}
-                            className={cn(
-                              'rounded-xl px-3 py-2 text-caption font-medium transition-colors duration-150',
-                              isActive
-                                ? 'bg-primary-800 text-white'
-                                : 'text-foreground-secondary hover:bg-primary-50 hover:text-primary-800'
-                            )}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="rounded-2xl border border-border bg-surface p-1">
+                  <div className="grid grid-cols-2 gap-1">
+                    {(
+                      [
+                        { key: true, label: 'Unassigned only' },
+                        { key: false, label: 'All questions' },
+                      ] as const
+                    ).map((option) => {
+                      const isActive = unassignedOnly === option.key;
+                      return (
+                        <button
+                          key={String(option.key)}
+                          type="button"
+                          onClick={() => setUnassignedOnly(option.key)}
+                          className={cn(
+                            'rounded-xl px-3 py-2 text-caption font-medium transition-colors duration-150',
+                            isActive
+                              ? 'bg-primary-800 text-white'
+                              : 'text-foreground-secondary hover:bg-primary-50 hover:text-primary-800'
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-surface p-1">
+                  <div className="grid grid-cols-5 gap-1">
+                    {(
+                      [
+                        { key: 'ALL', label: 'All' },
+                        { key: 'MCQ', label: 'MCQ' },
+                        { key: 'TRUE_FALSE', label: 'True/False' },
+                        { key: 'SHORT_TEXT', label: 'Short Text' },
+                        { key: 'ESSAY', label: 'Essay' },
+                      ] as const
+                    ).map((option) => {
+                      const isActive = typeFilter === option.key;
+                      return (
+                        <button
+                          key={option.key}
+                          type="button"
+                          onClick={() => setTypeFilter(option.key)}
+                          className={cn(
+                            'rounded-xl px-3 py-2 text-caption font-medium transition-colors duration-150',
+                            isActive
+                              ? 'bg-primary-800 text-white'
+                              : 'text-foreground-secondary hover:bg-primary-50 hover:text-primary-800'
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

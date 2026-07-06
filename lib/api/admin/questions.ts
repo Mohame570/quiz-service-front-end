@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/api/client';
-import { QuestionDto, QuestionType } from '@/types/question/question';
+import { CreateQuestionDto, QuestionDto, QuestionType } from '@/types/question/question';
 
 export async function getQuestions(params?: {
   type?: QuestionType;
@@ -12,4 +12,11 @@ export async function getQuestions(params?: {
   if (params?.quizId) query.set('quizId', params.quizId);
   const qs = query.toString();
   return apiFetch<QuestionDto[]>(`/api/questions${qs ? `?${qs}` : ''}`);
+}
+
+export async function createQuestion(dto: CreateQuestionDto): Promise<QuestionDto> {
+  return apiFetch<QuestionDto>('/api/questions', {
+    method: 'POST',
+    body: JSON.stringify(dto),
+  });
 }

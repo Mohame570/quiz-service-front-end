@@ -1,10 +1,13 @@
 import { z } from 'zod';
 import { QUIZ_STATUS } from '@/types/quiz/admin';
+import { QUESTION_TYPE } from '@/types/question/question';
 
 export type CreateQuizFormInput = z.input<typeof createQuizSchema>;
 export type CreateQuizFormValues = z.output<typeof createQuizSchema>;
 export type EditQuizFormInput = z.input<typeof editQuizSchema>;
 export type EditQuizFormValues = z.output<typeof editQuizSchema>;
+export type CreateQuestionFormInput = z.input<typeof createQuestionSchema>;
+export type CreateQuestionFormValues = z.output<typeof createQuestionSchema>;
 
 const quizFieldsSchema = z.object({
   title: z.string().min(3, 'Quiz title must be at least 3 characters long.'),
@@ -44,3 +47,53 @@ export const editQuizSchema = withDateRangeRefinement(
     ]),
   })
 );
+
+const questionOptionSchema = z.object({
+  value: z.string(),
+});
+
+const questionFieldsSchema = z.object({
+  type: z.enum([
+    QUESTION_TYPE.MCQ,
+    QUESTION_TYPE.TRUE_FALSE,
+    QUESTION_TYPE.SHORT_TEXT,
+    QUESTION_TYPE.ESSAY,
+  ]),
+  text: z.string().min(1, 'Question text is required.'),
+  options: z.array(questionOptionSchema).optional(),
+  correctAnswer: z.string().optional(),
+  points: z.coerce
+    .number({ error: 'Points must be a number.' })
+    .int('Points must be a whole number.')
+    .min(1, 'Points must be at least 1.'),
+  quizIds: z.array(z.string()).optional(),
+});
+
+export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx) => {
+  if (data.type === 'MCQ') {
+    const opts = (data.options ?? []).map((o) => o.value.trim()).filter(Boolean);
+    const unique = new Set(opts);
+    if (opts.length < 2) {
+      ctx.addIssue({ code: 'custom', message: 'MCQ needs at least 2 unique options.', path: ['options'] });
+    } else if (unique.size !== opts.length) {
+      ctx.addIssue({ code: 'custom', message: 'Options must be unique.', path: ['options'] });
+    }
+    if (!data.correctAnswer) {
+      ctx.addIssue({ code: 'custom', message: 'Select the correct option.', path: ['correctAnswer'] });
+    } else if (!opts.includes(data.correctAnswer)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Correct answer must match one of the options.',
+        path: ['correctAnswer'],
+      });
+    }
+  } else if (data.type === 'TRUE_FALSE') {
+    if (data.correctAnswer !== 'True' && data.correctAnswer !== 'False') {
+      ctx.addIssue({ code: 'custom', message: 'Select True or False.', path: ['correctAnswer'] });
+    }
+  } else if (data.type === 'SHORT_TEXT') {
+    if (!data.correctAnswer || !data.correctAnswer.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'Correct answer is required.', path: ['correctAnswer'] });
+    }
+  }
+});
