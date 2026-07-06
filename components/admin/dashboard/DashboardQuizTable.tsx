@@ -1,5 +1,5 @@
 import { PaginatedQuizData, QuizStatus } from '@/types/quiz/admin';
-import { QUIZ_STATUS_COLOR } from '@/lib/quiz-status';
+import { QUIZ_STATUS_COLOR, QuizScheduleState } from '@/lib/quiz-status';
 import QuizCardActions from './QuizActions';
 import QuizTablePagination from './QuizTablePagination';
 
@@ -14,7 +14,13 @@ function getStatusClassName(status: QuizStatus) {
   return COLOR_CLASS_NAMES[QUIZ_STATUS_COLOR[status]];
 }
 
-function DashboardQuizTable({ data }: { data: PaginatedQuizData }) {
+function DashboardQuizTable({
+  data,
+  scheduleStateById,
+}: {
+  data: PaginatedQuizData;
+  scheduleStateById?: Record<string, QuizScheduleState>;
+}) {
   const { quizzes, page, totalItems, totalPages, hasNextPage, hasPreviousPage } = data;
 
   return (
@@ -35,7 +41,9 @@ function DashboardQuizTable({ data }: { data: PaginatedQuizData }) {
           </thead>
           <tbody>
             {quizzes.length > 0 ? (
-              quizzes.map((quiz) => (
+              quizzes.map((quiz) => {
+                const scheduleState = scheduleStateById?.[quiz.id] ?? null;
+                return (
                 <tr key={quiz.id}>
                   <td>
                     <div className="quiz-title-cell">
@@ -53,17 +61,28 @@ function DashboardQuizTable({ data }: { data: PaginatedQuizData }) {
                   {/* <td className="text-center">{quiz.questions}</td> */}
                   {/* <td>{quiz.totalPlays}</td> */}
                   <td>
-                    <span className={`quiz-status ${getStatusClassName(quiz.status)}`}>
-                      {quiz.status}
-                    </span>
+                    {scheduleState === 'SCHEDULED' ? (
+                      <span className="quiz-status text-warning before:bg-warning">
+                        Scheduled to publish on {new Date(quiz.startsAt).toLocaleDateString()}
+                      </span>
+                    ) : scheduleState === 'MISSED_SCHEDULE' ? (
+                      <span className="quiz-status text-destructive before:bg-destructive">
+                        Missed scheduled publish — needs questions
+                      </span>
+                    ) : (
+                      <span className={`quiz-status ${getStatusClassName(quiz.status)}`}>
+                        {quiz.status}
+                      </span>
+                    )}
                   </td>
                   <td>
                     <div className="quiz-table-actions">
-                      <QuizCardActions id={quiz.id} title={quiz.title} />
+                      <QuizCardActions id={quiz.id} title={quiz.title} status={quiz.status} />
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={6} className="px-6 py-16 text-center text-small text-muted-foreground">

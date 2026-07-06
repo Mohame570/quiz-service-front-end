@@ -164,6 +164,14 @@ export default function QuizSolvePage() {
           return;
         }
 
+        if (err instanceof ApiError && err.status === 404) {
+          console.error('Quiz no longer available:', err);
+          setErrorTitle('Quiz unavailable');
+          setError('This quiz is no longer available.');
+          setPhase('error');
+          return;
+        }
+
         console.error('Failed to start attempt:', err);
         setError(msg || 'Failed to start attempt.');
         setPhase('error');

@@ -27,3 +27,25 @@ export type DeliverySummary = {
   overall: DeliveryStatusCounts;
   invitations: InvitationStatus[];
 };
+
+/** Request body for POST /api/admin/notifications/send-invitation */
+export type SendQuizInvitationDto = {
+  quizId: string;
+  recipientEmails: string[];
+  /** Overrides the base URL used to build each invite link; omit to use the server default. */
+  invitationUrl?: string;
+};
+
+/** Per-recipient delivery outcome returned by the send-invitation endpoint. */
+export type InvitationDeliveryResult = {
+  recipientEmail: string;
+  status: 'SENT' | 'FAILED';
+  [key: string]: unknown;
+};
+
+/** Response body for POST /api/admin/notifications/send-invitation */
+export type SendQuizInvitationResponse = {
+  sent: number;
+  failed: number;
+  results: InvitationDeliveryResult[];
+};

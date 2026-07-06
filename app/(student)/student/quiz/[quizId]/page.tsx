@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { BookOpen, Shield } from 'lucide-react';
+import { ApiError } from '@/lib/api/client';
 import { getQuiz } from '@/lib/api/student';
 import { useClientUser } from '@/lib/hooks/useClientUser';
 import { readInviteBannerForQuiz, type InviteBannerKind } from '@/lib/quiz-invite-flash';
@@ -20,12 +21,16 @@ import AttemptStatusBadge from '@/components/student/AttemptStatusBadge';
 import QuizRules from '@/components/student/QuizRules';
 import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
 
+type QuizPageState =
+  | { status: 'loading' }
+  | { status: 'ready'; quiz: QuizInstructionsDto }
+  | { status: 'error'; message: string };
+
 export default function QuizInstructionsPage() {
   const params = useParams();
   const router = useRouter();
   const quizId = params.quizId as string;
-  const [quiz, setQuiz] = useState<QuizInstructionsDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<QuizPageState>({ status: 'loading' });
   const [inviteBanner] = useState<InviteBannerKind | null>(() => {
     if (typeof window === 'undefined') return null;
     return readInviteBannerForQuiz(
@@ -44,19 +49,19 @@ export default function QuizInstructionsPage() {
   const needsVerification = user != null && !user.emailVerified;
 
   useEffect(() => {
-    if (needsVerification) {
-      setLoading(false);
-      return;
-    }
+    if (needsVerification) return;
 
     async function fetchQuiz() {
       try {
         const data = await getQuiz(quizId);
-        setQuiz(data);
+        setState({ status: 'ready', quiz: data });
       } catch (err) {
         console.error('Failed to fetch quiz:', err);
-      } finally {
-        setLoading(false);
+        const message =
+          err instanceof ApiError && err.status === 404
+            ? 'This quiz is no longer available.'
+            : 'Failed to load quiz. Please try again.';
+        setState({ status: 'error', message });
       }
     }
 
@@ -67,7 +72,7 @@ export default function QuizInstructionsPage() {
     return <VerifyEmailPrompt />;
   }
 
-  if (loading) {
+  if (state.status === 'loading') {
     return (
       <Container size="quiz">
         <div className="py-8">
@@ -77,13 +82,13 @@ export default function QuizInstructionsPage() {
     );
   }
 
-  if (!quiz) {
+  if (state.status === 'error') {
     return (
       <Container size="quiz">
         <div className="py-8">
           <EmptyPanel
             title="Quiz not found"
-            description="This quiz isn't available to you. If you received an invitation, open the link from your email to join the quiz first."
+            description={state.message}
             action={
               <Button
                 asChild
@@ -98,6 +103,8 @@ export default function QuizInstructionsPage() {
       </Container>
     );
   }
+
+  const quiz = state.quiz;
 
   const canResume =
     quiz.attemptStatus === 'IN_PROGRESS' && Boolean(quiz.attemptId);
