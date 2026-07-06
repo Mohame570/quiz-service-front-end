@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/api/client';
-import { QuizData, PaginatedQuizData } from '@/types/quiz/admin';
+import { QuizData, QuizDetail, QuizStatus, PaginatedQuizData } from '@/types/quiz/admin';
 import { CreateQuizFormValues } from '@/lib/validation';
 import { getUser } from '@/lib/auth/session';
 
@@ -16,8 +16,8 @@ export async function getAdminQuizzes(params?: {
   return apiFetch<PaginatedQuizData>(`/api/admin/quizzes${qs ? `?${qs}` : ''}`);
 }
 
-export async function getAdminQuizById(id: string): Promise<QuizData> {
-  return apiFetch<QuizData>(`/api/admin/quizzes/${id}`);
+export async function getAdminQuizById(id: string): Promise<QuizDetail> {
+  return apiFetch<QuizDetail>(`/api/admin/quizzes/${id}`);
 }
 
 export async function deleteAdminQuiz(id: string): Promise<{ deleted: boolean; id: string }> {
@@ -81,4 +81,15 @@ export async function unpublishAdminQuiz(id: string): Promise<QuizData> {
   return apiFetch<QuizData>(`/api/admin/quizzes/${id}/unpublish`, {
     method: 'POST',
   });
+}
+
+export async function updateAdminQuizStatus(id: string, status: QuizStatus): Promise<QuizData> {
+  return apiFetch<QuizData>(`/api/admin/quizzes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function archiveAdminQuiz(id: string): Promise<QuizData> {
+  return updateAdminQuizStatus(id, 'ARCHIVED');
 }
