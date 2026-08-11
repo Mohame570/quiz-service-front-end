@@ -17,6 +17,7 @@ import {
   isTextQuestionType,
   QUESTION_TYPE_LABELS,
 } from '@/lib/answers';
+import { ApiError } from '@/lib/api/client';
 import Container from '@/components/shared/Container';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import LoadingPanel from '@/components/shared/LoadingPanel';

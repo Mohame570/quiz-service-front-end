@@ -202,6 +202,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
+## Docker
+
+A Dockerfile for this app is tracked in the task bank as **TASK-I1** (see `PitIQ-stuff/Intern-Task-Bank.md`).
+It has not been implemented yet. Use `npm run dev` locally against the backend Docker Compose stack.
+
 ### Build & Deploy
 
 ```bash

@@ -12,8 +12,8 @@
 // the production build without this.
 
 import { Suspense } from "react";
-import VerifyEmailClient from "@/components/verification/verifyemailclient";
-import VerifyEmailFallback from "@/components/verification/verifyemailfallback";
+import VerifyEmailClient from "@/components/verification/VerifyEmailClient";
+import VerifyEmailFallback from "@/components/verification/VerifyEmailFallback";
 
 export default function VerifyEmailPage() {
   return (
