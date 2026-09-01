@@ -3,7 +3,9 @@ import DashboardFilter from '@/components/admin/dashboard/DashboardFilter';
 import DashboardSearch from '@/components/admin/dashboard/DashboardSearch';
 import StatsCard from '@/components/admin/dashboard/StatsCard';
 import DashboardQuizTable from '@/components/admin/dashboard/DashboardQuizTable';
-import { DASHBOARD_STATS } from '@/constants';
+import { getAnalyticsSummary } from '@/lib/api/admin/analytics';
+import type { DashboardSummary } from '@/lib/api/admin/analytics';
+import { STAT_UNAVAILABLE } from '@/lib/format';
 import { searchParamsProps } from '@/types';
 import { getAdminQuizzes } from '@/lib/api/admin/quizzes';
 import { getQuestions } from '@/lib/api/admin/questions';
@@ -40,15 +42,68 @@ async function Dashboard({ searchParams }: searchParamsProps) {
 
   let data: PaginatedQuizData | null = null;
   let loadError: string | null = null;
-  try {
-    data = await getAdminQuizzes({
+  let analyticsSummary: DashboardSummary | null = null;
+
+  const [quizzesResult, analyticsResult] = await Promise.allSettled([
+    getAdminQuizzes({
       search: searchTerm || undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
       page: currentPage,
-    });
-  } catch (err) {
+    }),
+    getAnalyticsSummary(),
+  ]);
+
+  if (quizzesResult.status === 'fulfilled') {
+    data = quizzesResult.value;
+  } else {
+    const err = quizzesResult.reason;
     loadError = err instanceof Error ? err.message : 'Failed to load quizzes. Please try again.';
   }
+
+  if (analyticsResult.status === 'fulfilled') {
+    analyticsSummary = analyticsResult.value;
+  }
+
+  const totalQuizzesVal =
+    data?.totalItems != null
+      ? String(data.totalItems)
+      : analyticsSummary?.totalQuizzes != null
+        ? String(analyticsSummary.totalQuizzes)
+        : STAT_UNAVAILABLE;
+
+  const totalAttemptsVal =
+    analyticsSummary?.totalAttempts != null && !Number.isNaN(analyticsSummary.totalAttempts)
+      ? String(analyticsSummary.totalAttempts)
+      : STAT_UNAVAILABLE;
+
+  const avgScoreVal =
+    analyticsSummary &&
+    analyticsSummary.totalAttempts > 0 &&
+    analyticsSummary.averageScore != null &&
+    !Number.isNaN(analyticsSummary.averageScore)
+      ? `${Math.round(analyticsSummary.averageScore)}%`
+      : STAT_UNAVAILABLE;
+
+  const dashboardStats = [
+    {
+      id: 'total-quizzes',
+      icon: '📚',
+      label: 'Total Quizzes',
+      value: totalQuizzesVal,
+    },
+    {
+      id: 'total-attempts',
+      icon: '📝',
+      label: 'Total Attempts',
+      value: totalAttemptsVal,
+    },
+    {
+      id: 'avg-score',
+      icon: '⭐',
+      label: 'Avg. Score',
+      value: avgScoreVal,
+    },
+  ];
 
   const scheduleStateById: Record<string, QuizScheduleState> = {};
   if (data) {
@@ -83,7 +138,7 @@ async function Dashboard({ searchParams }: searchParamsProps) {
           <DashboardFilter />
         </div>
         <div className="grid-auto-fit place-items-center gap-4">
-          {DASHBOARD_STATS.map((s) => (
+          {dashboardStats.map((s) => (
             <StatsCard key={s.id} icon={s.icon} label={s.label} value={s.value} />
           ))}
         </div>
