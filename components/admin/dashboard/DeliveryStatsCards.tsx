@@ -1,9 +1,7 @@
-// components/admin/dashboard/DeliveryStatsCards.tsx
-//
 // Displays aggregated email delivery stats as stat cards.
-// Consumed by: app/admin/dashboard/notifications/page.tsx
 
 import type { DeliveryStatusCounts } from '@/types/notification/notification';
+import { formatCompactNumber } from '@/lib/format';
 
 function MailIcon() {
   return (
@@ -48,7 +46,7 @@ const STATS_CONFIG = [
   { key: 'pending', label: 'Pending', icon: <ClockIcon />, color: 'text-amber-600' },
 ] as const;
 
-export default function DeliveryStatsCards({ overall }: { overall: DeliveryStatusCounts }) {
+export default function DeliveryStatsCards({ overall }: { overall?: DeliveryStatusCounts | null }) {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {STATS_CONFIG.map((stat) => (
@@ -60,7 +58,7 @@ export default function DeliveryStatsCards({ overall }: { overall: DeliveryStatu
           <div>
             <p className="text-sm text-foreground-secondary">{stat.label}</p>
             <p className="text-2xl font-bold text-foreground">
-              {overall[stat.key]}
+              {formatCompactNumber(overall ? overall[stat.key] : null)}
             </p>
           </div>
         </div>
