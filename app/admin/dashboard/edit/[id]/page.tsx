@@ -3,14 +3,34 @@ import EditQuizForm from '@/components/admin/dashboard/forms/EditQuizForm';
 import { Button } from '@/components/ui/button';
 import { getAdminQuizById } from '@/lib/api/admin/quizzes';
 import { QUIZ_STATUS_LABEL, getQuizStatusPill } from '@/lib/quiz-status';
-
+import { ApiError } from '@/lib/api/client';
 type EditQuizPageProps = {
   params: Promise<{ id: string }>;
 };
 
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
-  const quiz = await getAdminQuizById(id);
+  let quiz;
+
+  try {
+    quiz = await getAdminQuizById(id);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 403) {
+      return (
+        <main className="min-h-screen bg-background text-foreground">
+          <section className="mx-auto flex w-full max-w-7xl flex-col items-center gap-4 px-6 py-16 text-center lg:px-10">
+            <h1 className="text-xl font-semibold">Access denied</h1>
+            <p className="text-sm text-foreground-secondary">
+              Please sign in as an admin to access this page.
+            </p>
+          </section>
+        </main>
+      );
+    }
+  
+    throw err;
+  }
+  
   if (!quiz) return null;
 
   const statusPill = getQuizStatusPill(quiz.status);

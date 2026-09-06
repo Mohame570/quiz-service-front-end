@@ -18,6 +18,7 @@ import {
   updateAdminQuizStatus,
   deleteAdminQuiz,
 } from '@/lib/api/admin/quizzes';
+import { ApiError } from '@/lib/api/client';
 import { QUIZ_STATUS_LABEL } from '@/lib/quiz-status';
 import SectionTitle from './FormSectionTitle';
 import FieldError from './FormFieldError';
@@ -94,6 +95,12 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
         redirectTo === 'questions' ? `/admin/dashboard/edit/${id}/questions` : '/admin/dashboard'
       );
     } catch (err) {
+      if (err instanceof ApiError && err.status === 403) {
+        form.setError('root', {
+          message: 'Access denied. Please sign in as an admin.',
+        });
+        return;
+      }
       form.setError('root', {
         message: err instanceof Error ? err.message : 'Failed to update quiz. Please try again.',
       });
@@ -108,6 +115,13 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
       await deleteAdminQuiz(id);
       router.push('/admin/dashboard');
     } catch (err) {
+      if (err instanceof ApiError && err.status === 403) {
+        form.setError('root', {
+          message: 'Access denied. You can only delete your own quizzes.',
+        });
+        return;
+      }
+
       form.setError('root', {
         message: err instanceof Error ? err.message : 'Failed to delete quiz. Please try again.',
       });

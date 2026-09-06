@@ -19,6 +19,7 @@ import DeliveryStatsCards from '@/components/admin/dashboard/DeliveryStatsCards'
 import InvitationStatusTable from '@/components/admin/dashboard/InvitationStatusTable';
 import { getDeliverySummary, getInvitationStatus } from '@/lib/api/admin/notifications';
 import type { DeliverySummary, InvitationStatus } from '@/types/notification/notification';
+import { ApiError } from '@/lib/api/client';
 
 export default function NotificationsDashboardView() {
   const [summary, setSummary] = useState<DeliverySummary | null>(null);
@@ -55,6 +56,8 @@ export default function NotificationsDashboardView() {
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
           isNetworkDown = true;
           setNetworkDown(true);
+        } else if(err instanceof ApiError && err.status === 403) {
+          setSummaryError('Access denied. Please sign in as an admin.');
         } else {
           setSummaryError(err instanceof Error ? err.message : 'Failed to load delivery summary.');
         }
