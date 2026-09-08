@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { ToastProvider } from '@/components/ui/toast';
 
 type AdminShellContextValue = {
   sidebarOpen: boolean;
@@ -33,7 +34,7 @@ export default function AdminShellProvider({ children }: { children: React.React
 
   return (
     <AdminShellContext value={{ sidebarOpen, setSidebarOpen, toggleSidebar }}>
-      {children}
+      <ToastProvider>{children}</ToastProvider>
     </AdminShellContext>
   );
 }

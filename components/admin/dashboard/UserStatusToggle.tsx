@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { updateAdminUserStatus } from '@/lib/api/admin/users';
 import { AdminUser } from '@/types/user/admin-user';
+import { useToast } from '@/components/ui/toast';
 
 type Props = {
   user: AdminUser;
@@ -19,6 +20,7 @@ type Props = {
 
 export default function UserStatusToggle({ user }: Props) {
   const router = useRouter();
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,12 +48,24 @@ export default function UserStatusToggle({ user }: Props) {
       await updateAdminUserStatus(user.id, nextStatus);
       setIsOpen(false);
       router.refresh();
+      if (nextStatus) {
+        toast.success(
+          'Account Reactivated',
+          `${user.email} has been reactivated and can now access quizzes.`,
+        );
+      } else {
+        toast.success(
+          'Account Deactivated',
+          `${user.email} has been deactivated and is blocked from logging in.`,
+        );
+      }
     } catch (err: unknown) {
       const msg =
         err instanceof Error
           ? err.message
           : 'Failed to update account status. Please try again.';
       setErrorMessage(msg);
+      toast.error('Action Failed', msg);
     } finally {
       setIsLoading(false);
     }
