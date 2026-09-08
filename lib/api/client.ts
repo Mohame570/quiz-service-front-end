@@ -49,7 +49,11 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}): Pro
     headers,
   });
 
-  if (response.status === 401 && typeof window !== 'undefined') {
+  if (
+    response.status === 401 &&
+    typeof window !== 'undefined' &&
+    window.location.pathname !== '/login'
+  ) {
     localStorage.removeItem('accessToken');
     window.location.href = '/login';
     throw new ApiError('Unauthorized', 401);
