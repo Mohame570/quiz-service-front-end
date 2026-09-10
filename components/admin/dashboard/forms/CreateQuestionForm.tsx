@@ -26,6 +26,7 @@ import FieldError from './FormFieldError';
 
 const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   MCQ: 'Multiple Choice',
+  MULTI_SELECT: 'Multi Select',
   TRUE_FALSE: 'True / False',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
@@ -114,6 +115,9 @@ function CreateQuestionForm({
     } else if (values.type === 'TRUE_FALSE') {
       dto.options = ['True', 'False'];
       dto.correctAnswer = values.correctAnswer;
+    } else if (values.type === 'MULTI_SELECT') {
+      dto.options = (values.options ?? []).map((o) => o.value.trim()).filter(Boolean);
+      dto.correctAnswers = values.correctAnswers;
     } else if (values.type === 'SHORT_TEXT') {
       dto.correctAnswer = values.correctAnswer;
     }
@@ -224,6 +228,33 @@ function CreateQuestionForm({
             </button>
             <FieldError message={errors.options?.message as string | undefined} />
             <FieldError message={errors.correctAnswer?.message} />
+          </div>
+        )}
+
+        {type === 'MULTI_SELECT' && (
+          <div className="grid gap-2">
+            <Label>Options (check all correct)</Label>
+            <div className="grid gap-2">
+              {optionFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={(watch('correctAnswers') ?? []).includes(options[index]?.value ?? '')}
+                    onChange={(e) => {
+                      const val = options[index]?.value ?? '';
+                      if (!val) return;
+                      const cur = watch('correctAnswers') ?? [];
+                      setValue('correctAnswers', e.target.checked ? [...cur, val] : cur.filter((v) => v !== val), { shouldValidate: true });
+                    }}
+                    className="h-4 w-4 accent-primary-700"
+                  />
+                  <Input placeholder={`Option ${index + 1}`} {...register(`options.${index}.value` as const)} />
+                  <button type="button" onClick={() => removeOption(index)} disabled={optionFields.length <= 2} className="shrink-0 rounded-lg p-2 text-muted-foreground hover:bg-primary-100"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={() => appendOption({ value: '' })} className="w-fit text-small font-medium text-primary-700 hover:underline">+ Add option</button>
+            <FieldError message={(errors as any).correctAnswers?.message} />
           </div>
         )}
 

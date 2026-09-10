@@ -55,6 +55,7 @@ const questionOptionSchema = z.object({
 const questionFieldsSchema = z.object({
   type: z.enum([
     QUESTION_TYPE.MCQ,
+    QUESTION_TYPE.MULTI_SELECT,
     QUESTION_TYPE.TRUE_FALSE,
     QUESTION_TYPE.SHORT_TEXT,
     QUESTION_TYPE.ESSAY,
@@ -62,6 +63,7 @@ const questionFieldsSchema = z.object({
   text: z.string().min(1, 'Question text is required.'),
   options: z.array(questionOptionSchema).optional(),
   correctAnswer: z.string().optional(),
+  correctAnswers: z.array(z.string()).optional(),
   points: z.coerce
     .number({ error: 'Points must be a number.' })
     .int('Points must be a whole number.')
@@ -92,6 +94,17 @@ export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx)
   } else if (data.type === 'TRUE_FALSE') {
     if (data.correctAnswer !== 'True' && data.correctAnswer !== 'False') {
       ctx.addIssue({ code: 'custom', message: 'Select True or False.', path: ['correctAnswer'] });
+    }
+  } else if (data.type === 'MULTI_SELECT') {
+    const opts = (data.options ?? []).map((o) => o.value.trim()).filter(Boolean);
+    const corrects = data.correctAnswers ?? [];
+    if (opts.length < 2) {
+      ctx.addIssue({ code: 'custom', message: 'Multi-select needs at least 2 options.', path: ['options'] });
+    }
+    if (corrects.length < 1) {
+      ctx.addIssue({ code: 'custom', message: 'Select at least one correct answer.', path: ['correctAnswers'] });
+    } else if (!corrects.every((c) => opts.includes(c))) {
+      ctx.addIssue({ code: 'custom', message: 'All correct answers must match options.', path: ['correctAnswers'] });
     }
   } else if (data.type === 'SHORT_TEXT') {
     if (!data.correctAnswer || !data.correctAnswer.trim()) {
