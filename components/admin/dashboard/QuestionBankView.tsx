@@ -7,6 +7,7 @@ import { QuestionDto, QuestionType } from '@/types/question/question';
 const TYPE_LABELS: Record<QuestionType, string> = {
   MCQ: 'Multiple Choice',
   TRUE_FALSE: 'True / False',
+  MULTI_SELECT: 'Multi Select',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
 };

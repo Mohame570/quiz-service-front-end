@@ -103,7 +103,7 @@ export default function QuizSolvePage() {
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId);
   const [questions, setQuestions] = useState<AttemptQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string | null>>({});
+  const [answers, setAnswers] = useState<Record<string, string | string[] | null>>({});
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [errorTitle, setErrorTitle] = useState<string>('Failed to load quiz');
@@ -113,7 +113,7 @@ export default function QuizSolvePage() {
   const needsVerification = user != null && !user.emailVerified;
 
   const attemptIdRef = useRef<string | null>(initialAttemptId);
-  const answersRef = useRef<Record<string, string | null>>({});
+  const answersRef = useRef<Record<string, string | string[] | null>>({});
   const questionsRef = useRef<AttemptQuestion[]>([]);
   const submittedRef = useRef(false);
   const initRef = useRef(false);
@@ -263,8 +263,15 @@ export default function QuizSolvePage() {
     return () => clearTimeout(timer);
   }, [answers, attemptId, phase, quizId, router]);
 
-  const handleSelect = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  const handleSelect = (questionId: string, optionId: string, type: string) => {
+    if (type === 'MULTI_SELECT') {
+      setAnswers((prev) => {
+        const cur = (prev[questionId] as string[]) ?? [];
+        return { ...prev, [questionId]: cur.includes(optionId) ? cur.filter((v) => v !== optionId) : [...cur, optionId] };
+      });
+    } else {
+      setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    }
   };
 
   const handleTextChange = (questionId: string, value: string) => {
@@ -412,7 +419,7 @@ export default function QuizSolvePage() {
             <div>
               {currentQuestion.type === 'SHORT_TEXT' ? (
                 <Input
-                  value={answers[currentQuestion.id] ?? ''}
+                  value={(answers[currentQuestion.id] as string) ?? ''}
                   onChange={(e) =>
                     handleTextChange(currentQuestion.id, e.target.value)
                   }
@@ -422,7 +429,7 @@ export default function QuizSolvePage() {
                 />
               ) : (
                 <Textarea
-                  value={answers[currentQuestion.id] ?? ''}
+                  value={(answers[currentQuestion.id] as string) ?? ''}
                   onChange={(e) =>
                     handleTextChange(currentQuestion.id, e.target.value)
                   }
@@ -435,16 +442,23 @@ export default function QuizSolvePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {currentQuestion.options.map((option, idx) => (
-                <QuestionOption
-                  key={option}
-                  option={{ id: option, text: option }}
-                  isSelected={answers[currentQuestion.id] === option}
-                  onSelect={(id) => handleSelect(currentQuestion.id, id)}
-                  optionLabel={String.fromCharCode(65 + idx)}
-                  disabled={submitting}
-                />
-              ))}
+              {currentQuestion.options.map((option, idx) => {
+                const isMulti = currentQuestion.type === 'MULTI_SELECT';
+                const selected = answers[currentQuestion.id];
+                const isSelected = isMulti
+                  ? Array.isArray(selected) && (selected as string[]).includes(option)
+                  : selected === option;
+                return (
+                  <QuestionOption
+                    key={option}
+                    option={{ id: option, text: option }}
+                    isSelected={isSelected}
+                    onSelect={(id) => handleSelect(currentQuestion.id, id, currentQuestion.type)}
+                    optionLabel={String.fromCharCode(65 + idx)}
+                    disabled={submitting}
+                  />
+                );
+              })}
             </div>
           )}
 
