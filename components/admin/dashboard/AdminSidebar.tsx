@@ -50,7 +50,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Users',
     href: '/admin/dashboard/users',
     icon: <Users className="h-4 w-4" />,
-    comingSoon: true,
   },
   {
     label: 'Settings',
