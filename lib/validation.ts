@@ -8,6 +8,8 @@ export type EditQuizFormInput = z.input<typeof editQuizSchema>;
 export type EditQuizFormValues = z.output<typeof editQuizSchema>;
 export type CreateQuestionFormInput = z.input<typeof createQuestionSchema>;
 export type CreateQuestionFormValues = z.output<typeof createQuestionSchema>;
+export type SettingsFormInput = z.input<typeof settingsSchema>;
+export type SettingsFormValues = z.output<typeof settingsSchema>;
 
 const quizFieldsSchema = z.object({
   title: z.string().min(3, 'Quiz title must be at least 3 characters long.'),
@@ -98,4 +100,28 @@ export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx)
       ctx.addIssue({ code: 'custom', message: 'Correct answer is required.', path: ['correctAnswer'] });
     }
   }
+});
+
+export const settingsSchema = z.object({
+  organizationName: z
+    .string()
+    .min(1, 'Organization name is required.')
+    .max(100, 'Name cannot exceed 100 characters.'),
+  timezoneLabel: z
+    .string()
+    .min(1, 'Timezone label is required.')
+    .max(100, 'Timezone label cannot exceed 100 characters.'),
+  defaultPassThreshold: z.coerce
+    .number({ error: 'Passing threshold must be a number.' })
+    .int('Passing threshold must be an integer.')
+    .min(0, 'Threshold cannot be less than 0.')
+    .max(100, 'Threshold cannot exceed 100.'),
+  defaultDurationMinutes: z.coerce
+    .number({ error: 'Duration must be a number.' })
+    .int('Duration must be an integer.')
+    .min(1, 'Duration must be at least 1 minute.'),
+  integrityReviewThreshold: z.coerce
+    .number({ error: 'Integrity threshold must be a number.' })
+    .int('Integrity threshold must be an integer.')
+    .min(1, 'Integrity threshold must be at least 1 event.'),
 });

@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { BookOpen, Shield } from 'lucide-react';
 import { ApiError } from '@/lib/api/client';
 import { getQuiz } from '@/lib/api/student';
+import { getPublicSettings } from '@/lib/api/admin/settings';
 import { useClientUser } from '@/lib/hooks/useClientUser';
 import { readInviteBannerForQuiz, type InviteBannerKind } from '@/lib/quiz-invite-flash';
 import type { QuizInstructionsDto } from '@/types/quiz/student';
@@ -31,6 +32,7 @@ export default function QuizInstructionsPage() {
   const router = useRouter();
   const quizId = params.quizId as string;
   const [state, setState] = useState<QuizPageState>({ status: 'loading' });
+  const [timezoneLabel, setTimezoneLabel] = useState<string>('UTC');
   const [inviteBanner] = useState<InviteBannerKind | null>(() => {
     if (typeof window === 'undefined') return null;
     return readInviteBannerForQuiz(
@@ -67,6 +69,18 @@ export default function QuizInstructionsPage() {
 
     fetchQuiz();
   }, [quizId, needsVerification]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((settings) => {
+        if (settings?.timezoneLabel) {
+          setTimezoneLabel(settings.timezoneLabel);
+        }
+      })
+      .catch((error) => {
+        console.warn('Failed to load timezone setting, using default UTC:', error);
+      });
+  }, []);
 
   if (needsVerification) {
     return <VerifyEmailPrompt />;
@@ -161,15 +175,23 @@ export default function QuizInstructionsPage() {
                 <dd className="text-h3 text-foreground">{quiz.questionCount}</dd>
               </div>
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Starts</dt>
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Starts {quiz.startsAt ? `(${timezoneLabel})` : ''}
+                </dt>
                 <dd className="text-small text-foreground">
-                  {quiz.startsAt ? new Date(quiz.startsAt).toLocaleDateString() : 'Anytime'}
+                  {quiz.startsAt
+                    ? `${new Date(quiz.startsAt).toLocaleDateString()} ${timezoneLabel}`
+                    : 'Anytime'}
                 </dd>
               </div>
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Ends</dt>
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Ends {quiz.endsAt ? `(${timezoneLabel})` : ''}
+                </dt>
                 <dd className="text-small text-foreground">
-                  {quiz.endsAt ? new Date(quiz.endsAt).toLocaleDateString() : 'No deadline'}
+                  {quiz.endsAt
+                    ? `${new Date(quiz.endsAt).toLocaleDateString()} ${timezoneLabel}`
+                    : 'No deadline'}
                 </dd>
               </div>
             </dl>
