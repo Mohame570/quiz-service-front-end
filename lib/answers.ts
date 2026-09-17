@@ -5,7 +5,7 @@ export type SaveAnswerItem =
   | { questionId: string; textAnswer: string | null };
 
 export function isTextQuestionType(type: QuestionType): boolean {
-  return type === 'SHORT_TEXT' || type === 'ESSAY';
+  return type === 'SHORT_TEXT' || type === 'ESSAY' || type === 'FILL_BLANK' || type === 'CODE_CONTEXT';
 }
 
 export function buildAnswerPayload(
@@ -75,4 +75,7 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   TRUE_FALSE: 'True / False',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
+  MULTI_SELECT: 'Multi Select',
+  CODE_CONTEXT: 'Code Context',
+  FILL_BLANK: 'Fill in the Blank',
 };

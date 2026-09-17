@@ -7,6 +7,7 @@ import type {
   AttemptWithAnswersDto,
   SaveAnswersRequest,
   SubmitAttemptRequest,
+  OfficialScoreResponse
 } from '@/types/attempt/attempt';
 
 export async function getQuizzes(): Promise<QuizDto[]> {
@@ -75,4 +76,37 @@ export async function getAttemptResult(
   return apiFetch<AttemptWithAnswersDto>(
     `/api/student/attempts/${attemptId}/result`,
   );
+}
+export async function getOfficialScore(
+  quizId: string,
+): Promise<OfficialScoreResponse> {
+  return apiFetch<OfficialScoreResponse>(
+    `/api/student/quizzes/${quizId}/official-score`,
+  );
+}
+
+export type StudentProfileTopicSignal = {
+  topic: string;
+  correct: number;
+  total: number;
+  rate: number;
+};
+
+export type StudentProfileHistoryItem = {
+  attemptId: string;
+  quizId: string;
+  quizTitle: string;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  submittedAt: string | null;
+};
+
+export type StudentProfileResponse = {
+  history: StudentProfileHistoryItem[];
+  topicSignals: StudentProfileTopicSignal[];
+};
+
+export async function getStudentProfile(): Promise<StudentProfileResponse> {
+  return apiFetch<StudentProfileResponse>('/api/student/profile');
 }

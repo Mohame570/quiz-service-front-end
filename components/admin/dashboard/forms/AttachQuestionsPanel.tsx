@@ -23,6 +23,9 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   TRUE_FALSE: 'True / False',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
+  MULTI_SELECT: 'Multi Select',
+  CODE_CONTEXT: 'Code Context',
+  FILL_BLANK: 'Fill in the Blank',
 };
 
 type SelectedEntry = { question: QuestionDto; order: number };

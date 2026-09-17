@@ -20,6 +20,20 @@ const quizFieldsSchema = z.object({
     .number({ error: 'Passing score must be a number.' })
     .min(0, 'Passing score cannot be less than 0.')
     .max(100, 'Passing score cannot exceed 100.'),
+   
+  maxAttempts: z.preprocess(
+    (v) => (v === '' || v == null ? undefined : v),
+    z.coerce
+      .number({ error: 'Max attempts must be a number.' })
+      .int('Max attempts must be a whole number.')
+      .min(1, 'Max attempts must be at least 1.')
+      .optional(),
+  ),
+  scoreStrategy: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.enum(['BEST', 'LATEST']).optional(),
+  ),
+  
   startDate: z.string().optional(),
   endDate: z.string().optional(),
 });
@@ -53,12 +67,18 @@ const questionOptionSchema = z.object({
 });
 
 const questionFieldsSchema = z.object({
-  type: z.enum([
+   type: z.enum([
     QUESTION_TYPE.MCQ,
     QUESTION_TYPE.TRUE_FALSE,
     QUESTION_TYPE.SHORT_TEXT,
     QUESTION_TYPE.ESSAY,
+    QUESTION_TYPE.MULTI_SELECT,
+    QUESTION_TYPE.CODE_CONTEXT,
+    QUESTION_TYPE.FILL_BLANK,
   ]),
+  codeSnippet: z.string().optional(),
+  codeLanguage: z.string().optional(),
+
   text: z.string().min(1, 'Question text is required.'),
   options: z.array(questionOptionSchema).optional(),
   correctAnswer: z.string().optional(),
@@ -94,6 +114,17 @@ export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx)
       ctx.addIssue({ code: 'custom', message: 'Select True or False.', path: ['correctAnswer'] });
     }
   } else if (data.type === 'SHORT_TEXT') {
+    if (!data.correctAnswer || !data.correctAnswer.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'Correct answer is required.', path: ['correctAnswer'] });
+    }
+  } else if (data.type === 'FILL_BLANK') {
+    if (!data.correctAnswer || !data.correctAnswer.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'Correct answer is required.', path: ['correctAnswer'] });
+    }
+  } else if (data.type === 'CODE_CONTEXT') {
+    if (!data.codeSnippet || !data.codeSnippet.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'Code snippet is required.', path: ['codeSnippet'] });
+    }
     if (!data.correctAnswer || !data.correctAnswer.trim()) {
       ctx.addIssue({ code: 'custom', message: 'Correct answer is required.', path: ['correctAnswer'] });
     }

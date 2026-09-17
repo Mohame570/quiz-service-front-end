@@ -19,6 +19,8 @@ const DEFAULT_VALUES: CreateQuizFormInput = {
   title: '',
   description: '',
   durationMinutes: 60,
+    maxAttempts: '',
+  scoreStrategy: '',
   passingScore: 50,
   startDate: '',
   endDate: '',
@@ -126,6 +128,35 @@ function CreateQuizForm() {
               <FieldError message={errors.passingScore?.message} />
             </div>
           </div>
+
+            <div className="grid gap-2">
+              <FormLabel htmlFor="maxAttempts" label="Max Attempts (optional)" />
+              <Input
+                id="maxAttempts"
+                type="number"
+                min={1}
+                step={1}
+                placeholder="Unlimited"
+                aria-invalid={Boolean(errors.maxAttempts)}
+                {...register('maxAttempts')}
+              />
+              <FieldError message={errors.maxAttempts?.message} />
+            </div>
+
+            <div className="grid gap-2">
+              <FormLabel htmlFor="scoreStrategy" label="Official Score" />
+              <select
+                id="scoreStrategy"
+                aria-invalid={Boolean(errors.scoreStrategy)}
+                {...register('scoreStrategy')}
+                className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground outline-none focus:border-primary-300"
+              >
+                <option value="">Default (Latest)</option>
+                <option value="BEST">Best attempt</option>
+                <option value="LATEST">Latest attempt</option>
+              </select>
+              <FieldError message={errors.scoreStrategy?.message} />
+            </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">

@@ -26,6 +26,9 @@ import FieldError from './FormFieldError';
 
 const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   MCQ: 'Multiple Choice',
+    MULTI_SELECT: 'Multi Select',
+  CODE_CONTEXT: 'Code Context',
+  FILL_BLANK: 'Fill in the Blank',
   TRUE_FALSE: 'True / False',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
@@ -36,6 +39,8 @@ const DEFAULT_VALUES: CreateQuestionFormInput = {
   text: '',
   options: [{ value: '' }, { value: '' }],
   correctAnswer: '',
+    codeSnippet: '',
+  codeLanguage: '',
   points: 1,
   quizIds: [],
 };
@@ -116,7 +121,14 @@ function CreateQuestionForm({
       dto.correctAnswer = values.correctAnswer;
     } else if (values.type === 'SHORT_TEXT') {
       dto.correctAnswer = values.correctAnswer;
+    } else if (values.type === 'FILL_BLANK') {
+      dto.correctAnswer = values.correctAnswer;
+    } else if (values.type === 'CODE_CONTEXT') {
+      dto.codeSnippet = values.codeSnippet?.trim();
+      dto.codeLanguage = values.codeLanguage?.trim() || undefined;
+      dto.correctAnswer = values.correctAnswer;
     }
+
 
     if (values.quizIds && values.quizIds.length > 0) {
       dto.quizIds = values.quizIds;
@@ -257,6 +269,46 @@ function CreateQuestionForm({
             <Input
               id="q-correct-answer"
               placeholder="Expected answer"
+              {...register('correctAnswer')}
+            />
+            <FieldError message={errors.correctAnswer?.message} />
+          </div>
+        )}
+
+        {type === 'FILL_BLANK' && (
+          <div className="grid gap-2">
+            <Label htmlFor="q-correct-answer">Correct Answer</Label>
+            <Input
+              id="q-correct-answer"
+              placeholder="The exact word or phrase for the blank"
+              {...register('correctAnswer')}
+            />
+            <FieldError message={errors.correctAnswer?.message} />
+          </div>
+        )}
+
+        {type === 'CODE_CONTEXT' && (
+          <div className="grid gap-2">
+            <Label htmlFor="q-code-language">Code Language (optional)</Label>
+            <Input
+              id="q-code-language"
+              placeholder="e.g. python, javascript, sql"
+              {...register('codeLanguage')}
+            />
+            <Label htmlFor="q-code-snippet">Code Snippet</Label>
+            <Textarea
+              id="q-code-snippet"
+              placeholder="Paste the read-only code block the student will see..."
+              rows={8}
+              dir="ltr"
+              className="font-mono"
+              {...register('codeSnippet')}
+            />
+            <FieldError message={errors.codeSnippet?.message} />
+            <Label htmlFor="q-correct-answer">Correct Answer</Label>
+            <Input
+              id="q-correct-answer"
+              placeholder="Expected answer about the code"
               {...register('correctAnswer')}
             />
             <FieldError message={errors.correctAnswer?.message} />

@@ -212,6 +212,35 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <FieldError message={errors.passingScore?.message} />
             </div>
           </div>
+            <div className="grid gap-2">
+              <Label htmlFor="maxAttempts">Max Attempts (optional)</Label>
+              <Input
+                id="maxAttempts"
+                type="number"
+                min={1}
+                step={1}
+                placeholder="Unlimited"
+                aria-invalid={Boolean(errors.maxAttempts)}
+                {...register('maxAttempts')}
+              />
+              <FieldError message={errors.maxAttempts?.message} />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="scoreStrategy">Official Score</Label>
+              <select
+                id="scoreStrategy"
+                aria-invalid={Boolean(errors.scoreStrategy)}
+                {...register('scoreStrategy')}
+                className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground outline-none focus:border-primary-300"
+              >
+                <option value="">Default (Latest)</option>
+                <option value="BEST">Best attempt</option>
+                <option value="LATEST">Latest attempt</option>
+              </select>
+              <FieldError message={errors.scoreStrategy?.message} />
+            </div>
+
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status</Label>
