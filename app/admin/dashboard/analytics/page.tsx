@@ -18,6 +18,18 @@ export default function AnalyticsDashboardPage() {
           description="Live participation, completion, and score metrics across every quiz."
         />
         <AnalyticsDashboardView />
+          description="Track platform-wide performance, student participation, and assessment metrics."
+        />
+
+        <Suspense
+          fallback={
+            <div className="rounded-xl border border-border bg-surface p-8 text-center">
+              <p className="text-body text-foreground-secondary">Loading analytics data...</p>
+            </div>
+          }
+        >
+          <AnalyticsDashboardView />
+        </Suspense>
       </section>
     </main>
   );

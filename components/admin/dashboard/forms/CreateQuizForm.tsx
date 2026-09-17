@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BookCopy, Settings2 } from 'lucide-react';
-
+import { ApiError } from '@/lib/api/client';
 import Card from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,12 @@ function CreateQuizForm() {
         redirectTo === 'questions' ? `/admin/dashboard/edit/${quiz.id}/questions` : '/admin/dashboard'
       );
     } catch (err) {
+      if (err instanceof ApiError && err.status === 403) {
+        form.setError('root', {
+          message: 'Access denied. Please sign in as an admin.',
+        });
+        return;
+      }
       form.setError('root', {
         message: err instanceof Error ? err.message : 'Failed to create quiz. Please try again.',
       });

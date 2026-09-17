@@ -1,7 +1,5 @@
 'use client';
 
-// components/admin/dashboard/NotificationsDashboardView.tsx
-//
 // Client component that fetches email delivery summary and invitation
 // status from the admin notifications API. Auth tokens are sent from
 // the browser (localStorage), matching the integrity page pattern.
@@ -21,6 +19,7 @@ import DeliveryStatsCards from '@/components/admin/dashboard/DeliveryStatsCards'
 import InvitationStatusTable from '@/components/admin/dashboard/InvitationStatusTable';
 import { getDeliverySummary, getInvitationStatus } from '@/lib/api/admin/notifications';
 import type { DeliverySummary, InvitationStatus } from '@/types/notification/notification';
+import { ApiError } from '@/lib/api/client';
 
 export default function NotificationsDashboardView() {
   const [summary, setSummary] = useState<DeliverySummary | null>(null);
@@ -40,6 +39,8 @@ export default function NotificationsDashboardView() {
       setInvitationError(null);
       setNetworkDown(false);
 
+      let isNetworkDown = false;
+
       // Fetch both independently so partial data still renders
       const results = await Promise.allSettled([
         getDeliverySummary(),
@@ -53,7 +54,10 @@ export default function NotificationsDashboardView() {
       } else {
         const err = results[0].reason;
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          isNetworkDown = true;
           setNetworkDown(true);
+        } else if(err instanceof ApiError && err.status === 403) {
+          setSummaryError('Access denied. Please sign in as an admin.');
         } else {
           setSummaryError(err instanceof Error ? err.message : 'Failed to load delivery summary.');
         }
@@ -63,7 +67,7 @@ export default function NotificationsDashboardView() {
         setInvitations(results[1].value);
       } else {
         const err = results[1].reason;
-        if (!networkDown) {
+        if (!isNetworkDown) {
           setInvitationError(err instanceof Error ? err.message : 'Failed to load invitation data.');
         }
       }
@@ -122,13 +126,12 @@ export default function NotificationsDashboardView() {
   return (
     <>
       {/* Delivery stats — show even if invitations fail */}
-      {summary ? (
-        <DeliveryStatsCards overall={summary.overall} />
-      ) : summaryError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
-          <p className="text-sm text-red-700">Delivery stats unavailable: {summaryError}</p>
+      {summaryError && (
+        <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-center">
+          <p className="text-xs text-warning">Delivery stats unavailable: {summaryError} — displaying fallback values.</p>
         </div>
-      ) : null}
+      )}
+      <DeliveryStatsCards overall={summary?.overall} />
 
       {/* Invitation status — show even if stats fail */}
       {invitationError ? (
