@@ -29,6 +29,18 @@ type Props = {
   initialTimezoneLabel?: string;
 };
 
+function formatScheduleDate(value: string, timezoneLabel: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: timezoneLabel,
+  }).format(new Date(value));
+}
+
 export default function QuizOperationsHub({
   initialQuiz,
   initialTimezoneLabel = 'UTC',
@@ -103,10 +115,10 @@ export default function QuizOperationsHub({
   };
 
   const formattedStart = quiz.startsAt
-    ? new Date(quiz.startsAt).toLocaleDateString()
+    ? formatScheduleDate(quiz.startsAt, timezoneLabel)
     : 'Anytime';
   const formattedEnd = quiz.endsAt
-    ? new Date(quiz.endsAt).toLocaleDateString()
+    ? formatScheduleDate(quiz.endsAt, timezoneLabel)
     : 'No deadline';
 
   return (

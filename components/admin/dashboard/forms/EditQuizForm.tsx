@@ -287,7 +287,7 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <Label htmlFor="startDate">Starts At</Label>
               <Input
                 id="startDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.startDate)}
                 disabled={isLocked}
                 {...register('startDate')}
@@ -299,7 +299,7 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <Label htmlFor="endDate">Ends At</Label>
               <Input
                 id="endDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.endDate)}
                 disabled={isLocked}
                 {...register('endDate')}

@@ -160,7 +160,7 @@ function CreateQuizForm() {
               />
               <Input
                 id="startDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.startDate)}
                 {...register('startDate')}
               />
@@ -174,7 +174,7 @@ function CreateQuizForm() {
               />
               <Input
                 id="endDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.endDate)}
                 {...register('endDate')}
               />

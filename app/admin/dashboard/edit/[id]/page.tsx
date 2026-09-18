@@ -2,11 +2,34 @@ import Link from 'next/link';
 import EditQuizForm from '@/components/admin/dashboard/forms/EditQuizForm';
 import { Button } from '@/components/ui/button';
 import { getAdminQuizById } from '@/lib/api/admin/quizzes';
+import { getSettings } from '@/lib/api/admin/settings';
 import { QUIZ_STATUS_LABEL, getQuizStatusPill } from '@/lib/quiz-status';
 import { ApiError } from '@/lib/api/client';
+
 type EditQuizPageProps = {
   params: Promise<{ id: string }>;
 };
+
+function toDateTimeLocal(value: string | null, timezoneLabel: string): string {
+  if (!value) return '';
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezoneLabel,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  })
+    .formatToParts(new Date(value))
+    .reduce<Record<string, string>>((result, part) => {
+      if (part.type !== 'literal') result[part.type] = part.value;
+      return result;
+    }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
 
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
@@ -32,6 +55,8 @@ export default async function EditPage({ params }: EditQuizPageProps) {
   }
   
   if (!quiz) return null;
+  const settings = await getSettings();
+  const timezoneLabel = settings.timezoneLabel;
 
   const statusPill = getQuizStatusPill(quiz.status);
 
@@ -85,8 +110,8 @@ export default async function EditPage({ params }: EditQuizPageProps) {
           status={quiz.status}
           durationMinutes={quiz.durationMinutes}
           passingScore={quiz.passingScore}
-          startDate={quiz.startsAt?.slice(0, 10) ?? ''}
-          endDate={quiz.endsAt?.slice(0, 10) ?? ''}
+          startDate={toDateTimeLocal(quiz.startsAt, timezoneLabel)}
+          endDate={toDateTimeLocal(quiz.endsAt, timezoneLabel)}
         />
       </section>
     </main>
