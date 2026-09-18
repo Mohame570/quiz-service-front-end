@@ -40,7 +40,7 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
     if (state.status === 'unauthenticated' && email) {
       router.replace(`/login?redirect=${encodeURIComponent(invitationTarget(quizId, email))}`);
     } else if (state.status === 'match') {
-      router.replace(`/student/quiz/${quizId}`);
+      router.replace(`/student/quizzes/${quizId}`);
     }
   }, [state.status, email, quizId, router]);
 
