@@ -27,6 +27,15 @@ type QuizPageState =
   | { status: 'ready'; quiz: QuizInstructionsDto }
   | { status: 'error'; message: string };
 
+function formatScheduleTime(value: string, timezoneLabel: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: timezoneLabel,
+  }).format(new Date(value));
+}
+
 export default function QuizInstructionsPage() {
   const params = useParams();
   const router = useRouter();
@@ -195,7 +204,18 @@ export default function QuizInstructionsPage() {
                 </dd>
               </div>
             </dl>
+          {quiz.startsAt && quiz.endsAt &&
+                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
+                      <div className="flex items-center gap-2">
 
+                        <span className="font-medium text-slate-900">Schedule Window:</span>
+                        <span> {formatScheduleTime(quiz.startsAt, timezoneLabel)} → {formatScheduleTime(quiz.endsAt, timezoneLabel)} </span>
+                        <span className="rounded bg-primary-100 px-2 py-0.5 font-semibold text-primary-800">
+                          {timezoneLabel}
+                        </span>
+                        </div>
+                      </div>
+            }
             <div className="flex flex-col gap-4 border-t border-divider pt-6">
               {canResume ? (
                 <>
