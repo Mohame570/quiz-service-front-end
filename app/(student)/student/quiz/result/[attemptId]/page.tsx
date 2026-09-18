@@ -279,10 +279,11 @@ export default function ResultPage() {
                 {attempt.answers.map((answer, idx) => {
                   const status = getAnswerDisplayStatus(answer);
                   const styles = ANSWER_STATUS_STYLES[status];
+                 const multi = answer.selectedOptionIds;
                   const displayAnswer =
                     answer.textAnswer ??
                     answer.selectedOptionId ??
-                    'Skipped';
+                    (Array.isArray(multi) && multi.length > 0 ? multi.join(', ') : 'Skipped');
                   const truncatedAnswer =
                     displayAnswer.length > 120
                       ? `${displayAnswer.slice(0, 120)}…`
