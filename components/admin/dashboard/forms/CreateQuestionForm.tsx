@@ -274,6 +274,7 @@ function CreateQuestionForm({
               ))}
             </div>
             <button type="button" onClick={() => appendOption({ value: '' })} className="w-fit text-small font-medium text-primary-700 hover:underline">+ Add option</button>
+            <FieldError message={errors.options?.message as string | undefined} />
             <FieldError message={(errors as any).correctAnswers?.message} />
           </div>
         )}

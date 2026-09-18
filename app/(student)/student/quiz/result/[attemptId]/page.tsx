@@ -279,7 +279,7 @@ export default function ResultPage() {
                 {attempt.answers.map((answer, idx) => {
                   const status = getAnswerDisplayStatus(answer);
                   const styles = ANSWER_STATUS_STYLES[status];
-                 const multi = (answer as any).selectedOptionIds;
+                 const multi = answer.selectedOptionIds;
                   const displayAnswer =
                     answer.textAnswer ??
                     answer.selectedOptionId ??
