@@ -9,7 +9,8 @@ export function getAnswerDisplayStatus(
   const hasText = (answer.textAnswer?.trim().length ?? 0) > 0;
   const hasChoice =
     answer.selectedOptionId != null && answer.selectedOptionId !== '';
-
+  const selectedIds = (answer as any).selectedOptionIds;
+  const hasMultiChoice = Array.isArray(selectedIds) && selectedIds.length > 0
   if (!hasText && !hasChoice) return 'skipped';
 
   if (hasText) {

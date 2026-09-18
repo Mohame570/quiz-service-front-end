@@ -2,15 +2,8 @@
 
 import { useState } from 'react';
 import CreateQuestionForm from './forms/CreateQuestionForm';
-import { QuestionDto, QuestionType } from '@/types/question/question';
-
-const TYPE_LABELS: Record<QuestionType, string> = {
-  MCQ: 'Multiple Choice',
-  TRUE_FALSE: 'True / False',
-  MULTI_SELECT: 'Multi Select',
-  SHORT_TEXT: 'Short Text',
-  ESSAY: 'Essay',
-};
+import { QuestionDto } from '@/types/question/question';
+import { QUESTION_TYPE_LABELS } from '@/lib/answers';
 
 export default function QuestionBankView({
   initialQuestions,
@@ -55,7 +48,7 @@ export default function QuestionBankView({
               {questions.map((q) => (
                 <tr key={q.id} className="transition-colors hover:bg-muted/30">
                   <td className="max-w-md truncate px-4 py-3 font-medium text-foreground">{q.text}</td>
-                  <td className="px-4 py-3 text-foreground-secondary">{TYPE_LABELS[q.type]}</td>
+                  <td className="px-4 py-3 text-foreground-secondary">{QUESTION_TYPE_LABELS[q.type]}</td>
                   <td className="px-4 py-3 text-foreground-secondary">{q.points}</td>
                   <td className="px-4 py-3 text-foreground-secondary">{q.quizzes.length}</td>
                   <td className="px-4 py-3 text-xs text-foreground-secondary">

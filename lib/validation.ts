@@ -101,6 +101,10 @@ export const createQuestionSchema = questionFieldsSchema.superRefine((data, ctx)
     if (opts.length < 2) {
       ctx.addIssue({ code: 'custom', message: 'Multi-select needs at least 2 options.', path: ['options'] });
     }
+    const unique = new Set(opts);
+    if (unique.size !== opts.length) {
+      ctx.addIssue({ code: 'custom', message: 'Options must be unique.', path: ['options'] });
+    }
     if (corrects.length < 1) {
       ctx.addIssue({ code: 'custom', message: 'Select at least one correct answer.', path: ['correctAnswers'] });
     } else if (!corrects.every((c) => opts.includes(c))) {

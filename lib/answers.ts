@@ -80,9 +80,10 @@ export function answersFromAttempt(
   }>,
 ): Record<string, string | string[] | null> {
   const restored: Record<string, string | string[] | null> = {};
-  for (const answer of saved) {
-    if (Array.isArray((answer as any).selectedOptionIds)) {
-      restored[answer.questionId] = (answer as any).selectedOptionIds;
+ for (const answer of saved) {
+    const ids = (answer as any).selectedOptionIds;
+    if (Array.isArray(ids) && ids.length > 0) {
+      restored[answer.questionId] = ids;
     } else {
       restored[answer.questionId] =
         answer.textAnswer ?? answer.selectedOptionId ?? null;
