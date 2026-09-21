@@ -13,7 +13,9 @@ import { createAdminQuiz } from '@/lib/api/admin/quizzes';
 import SectionTitle from './FormSectionTitle';
 import FormLabel from './FormLabel';
 import FieldError from './FormFieldError';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSettings } from '@/lib/api/admin/settings';
 
 const DEFAULT_VALUES: CreateQuizFormInput = {
   title: '',
@@ -26,6 +28,7 @@ const DEFAULT_VALUES: CreateQuizFormInput = {
 
 function CreateQuizForm() {
   const router = useRouter();
+  const [timezoneLabel, setTimezoneLabel] = useState<string | null>(null);
 
   const form = useForm<CreateQuizFormInput, undefined, CreateQuizFormValues>({
     resolver: zodResolver(createQuizSchema),
@@ -36,8 +39,30 @@ function CreateQuizForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = form;
+
+  useEffect(() => {
+    let mounted = true;
+    getSettings()
+      .then((settings) => {
+        if (mounted && settings) {
+          reset((prev) => ({
+            ...prev,
+            durationMinutes: settings.defaultDurationMinutes,
+            passingScore: settings.defaultPassThreshold,
+          }));
+          setTimezoneLabel(settings.timezoneLabel);
+        }
+      })
+      .catch((error) => {
+        console.warn('Failed to fetch institutional settings, using local defaults:', error);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [reset]);
 
   const submit = async (values: CreateQuizFormValues, redirectTo: 'questions' | 'dashboard') => {
     try {
@@ -129,10 +154,13 @@ function CreateQuizForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">
-              <FormLabel htmlFor="startDate" label="Starts At" />
+              <FormLabel
+                htmlFor="startDate"
+                label={timezoneLabel ? `Starts At (${timezoneLabel})` : 'Starts At'}
+              />
               <Input
                 id="startDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.startDate)}
                 {...register('startDate')}
               />
@@ -140,10 +168,13 @@ function CreateQuizForm() {
             </div>
 
             <div className="grid gap-2">
-              <FormLabel htmlFor="endDate" label="Ends At" />
+              <FormLabel
+                htmlFor="endDate"
+                label={timezoneLabel ? `Ends At (${timezoneLabel})` : 'Ends At'}
+              />
               <Input
                 id="endDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.endDate)}
                 {...register('endDate')}
               />

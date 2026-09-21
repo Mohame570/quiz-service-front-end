@@ -3,11 +3,11 @@ import { getPublicSettings } from '@/lib/api/admin/settings';
 import { ApiError } from '@/lib/api/client';
 import QuizOperationsHub from '@/components/admin/dashboard/QuizOperationsHub';
 
-type ViewQuizPageProps = {
+type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default async function ViewQuizPage({ params }: ViewQuizPageProps) {
+export default async function QuizDetailPage({ params }: Props) {
   const { id } = await params;
   let quiz;
   let timezoneLabel = 'UTC';
@@ -38,7 +38,7 @@ export default async function ViewQuizPage({ params }: ViewQuizPageProps) {
       timezoneLabel = settings.timezoneLabel;
     }
   } catch (err) {
-    console.warn('Failed to load public settings for view page, using default UTC:', err);
+    console.warn('Failed to load public settings for quiz operations page, using default UTC:', err);
   }
 
   return (
@@ -49,3 +49,4 @@ export default async function ViewQuizPage({ params }: ViewQuizPageProps) {
     </main>
   );
 }
+
