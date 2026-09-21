@@ -23,23 +23,11 @@ import QuizStatusActions from './QuizStatusActions';
 import QuizInviteTelemetry from './QuizInviteTelemetry';
 import QuizIntegrityFlags from './QuizIntegrityFlags';
 import QuizResultsTable from './QuizResultsTable';
-
+import { formatScheduleWindow, getSafeTimezone } from '@/lib/date';
 type Props = {
   initialQuiz: QuizDetail;
   initialTimezoneLabel?: string;
 };
-
-function formatScheduleDate(value: string, timezoneLabel: string): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-    timeZone: timezoneLabel,
-  }).format(new Date(value));
-}
 
 export default function QuizOperationsHub({
   initialQuiz,
@@ -58,7 +46,7 @@ export default function QuizOperationsHub({
     getPublicSettings()
       .then((settings) => {
         if (mounted && settings?.timezoneLabel) {
-          setTimezoneLabel(settings.timezoneLabel);
+          setTimezoneLabel(getSafeTimezone(settings.timezoneLabel));
         }
       })
       .catch((error) => {
@@ -113,13 +101,6 @@ export default function QuizOperationsHub({
       ...updated,
     }));
   };
-
-  const formattedStart = quiz.startsAt
-    ? formatScheduleDate(quiz.startsAt, timezoneLabel)
-    : 'Anytime';
-  const formattedEnd = quiz.endsAt
-    ? formatScheduleDate(quiz.endsAt, timezoneLabel)
-    : 'No deadline';
 
   return (
     <div className="flex flex-col gap-6">
@@ -253,7 +234,7 @@ export default function QuizOperationsHub({
           <Calendar className="h-4 w-4 text-primary-600" />
           <span className="font-medium text-slate-900">Schedule Window:</span>
           <span>
-            {formattedStart} → {formattedEnd}
+            {formatScheduleWindow(quiz.startsAt, quiz.endsAt, timezoneLabel)}
           </span>
           <span className="rounded bg-primary-100 px-2 py-0.5 font-semibold text-primary-800">
             {timezoneLabel}

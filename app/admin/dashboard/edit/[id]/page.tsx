@@ -5,6 +5,7 @@ import { getAdminQuizById } from '@/lib/api/admin/quizzes';
 import { getSettings } from '@/lib/api/admin/settings';
 import { QUIZ_STATUS_LABEL, getQuizStatusPill } from '@/lib/quiz-status';
 import { ApiError } from '@/lib/api/client';
+import { getSafeTimezone } from '@/lib/date';
 
 type EditQuizPageProps = {
   params: Promise<{ id: string }>;
@@ -34,6 +35,7 @@ function toDateTimeLocal(value: string | null, timezoneLabel: string): string {
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
   let quiz;
+  let safeTimeZone: string = 'UTC';
 
   try {
     quiz = await getAdminQuizById(id);
@@ -55,8 +57,14 @@ export default async function EditPage({ params }: EditQuizPageProps) {
   }
   
   if (!quiz) return null;
-  const settings = await getSettings();
-  const timezoneLabel = settings.timezoneLabel;
+  try {
+      const settings = await getSettings();
+      const timezoneLabel = settings.timezoneLabel;
+      safeTimeZone = getSafeTimezone(timezoneLabel);
+  } catch (err) {
+      console.warn('Failed to load settings in EditPage, falling back to UTC:', err);
+  }
+
 
   const statusPill = getQuizStatusPill(quiz.status);
 
@@ -110,8 +118,8 @@ export default async function EditPage({ params }: EditQuizPageProps) {
           status={quiz.status}
           durationMinutes={quiz.durationMinutes}
           passingScore={quiz.passingScore}
-          startDate={toDateTimeLocal(quiz.startsAt, timezoneLabel)}
-          endDate={toDateTimeLocal(quiz.endsAt, timezoneLabel)}
+          startDate={toDateTimeLocal(quiz.startsAt, safeTimeZone)}
+          endDate={toDateTimeLocal(quiz.endsAt, safeTimeZone)}
         />
       </section>
     </main>
