@@ -21,6 +21,7 @@ export type AttemptAnswerDto = {
   attemptId: string;
   questionId: string;
   selectedOptionId: string | null;
+    selectedOptionIds?: string[] | null;
   textAnswer: string | null;
   isCorrect: boolean | null;
   answeredAt: string;
@@ -65,8 +66,9 @@ export type AttemptQuestionsResponse = {
   answers?: AttemptAnswerDto[];
 };
 
-export type SaveAnswerItem =
+export type SaveAnswerItem = 
   | { questionId: string; selectedOptionId: string | null }
+  | { questionId: string; selectedOptionIds: string[] }
   | { questionId: string; textAnswer: string | null };
 
 export type SaveAnswersRequest = {

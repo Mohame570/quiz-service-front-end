@@ -55,7 +55,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Settings',
     href: '/admin/dashboard/settings',
     icon: <Settings className="h-4 w-4" />,
-    comingSoon: true,
   },
 ];
 

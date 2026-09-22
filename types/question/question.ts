@@ -2,10 +2,10 @@ import type { QuizData } from '@/types/quiz/admin';
 
 export const QUESTION_TYPE = {
   MCQ: 'MCQ',
+  MULTI_SELECT: 'MULTI_SELECT',
   TRUE_FALSE: 'TRUE_FALSE',
   SHORT_TEXT: 'SHORT_TEXT',
   ESSAY: 'ESSAY',
-  MULTI_SELECT: 'MULTI_SELECT',
   CODE_CONTEXT: 'CODE_CONTEXT',
   FILL_BLANK: 'FILL_BLANK',
 } as const;
@@ -44,6 +44,9 @@ export type QuestionDto = {
   codeSnippet: string | null;
   codeLanguage: string | null;
   points: number;
+  difficulty: string;
+  topic: string | null;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
   quizzes: QuizData[];
@@ -58,5 +61,8 @@ export type CreateQuestionDto = {
   codeSnippet?: string;
   codeLanguage?: string;
   points?: number;
+  difficulty?: string;
+  topic?: string;
+  tags?: string[];
   quizIds?: string[];
 };

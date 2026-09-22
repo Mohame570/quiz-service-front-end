@@ -6,8 +6,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { BookOpen, Shield } from 'lucide-react';
 import { ApiError } from '@/lib/api/client';
 import { getQuiz } from '@/lib/api/student';
+import { getPublicSettings } from '@/lib/api/admin/settings';
 import { useClientUser } from '@/lib/hooks/useClientUser';
-import { readInviteBannerForQuiz, type InviteBannerKind } from '@/lib/quiz-invite-flash';
+import {
+  readInviteBannerForQuiz,
+  type InviteBannerKind,
+} from '@/lib/quiz-invite-flash';
 import type { QuizInstructionsDto } from '@/types/quiz/student';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
@@ -20,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import AttemptStatusBadge from '@/components/student/AttemptStatusBadge';
 import QuizRules from '@/components/student/QuizRules';
 import VerifyEmailPrompt from '@/components/student/VerifyEmailPrompt';
+import { getSafeTimezone, formatScheduleWindow } from '@/lib/date';
 
 type QuizPageState =
   | { status: 'loading' }
@@ -31,6 +36,7 @@ export default function QuizInstructionsPage() {
   const router = useRouter();
   const quizId = params.quizId as string;
   const [state, setState] = useState<QuizPageState>({ status: 'loading' });
+  const [timezoneLabel, setTimezoneLabel] = useState<string>('UTC');
   const [inviteBanner] = useState<InviteBannerKind | null>(() => {
     if (typeof window === 'undefined') return null;
     return readInviteBannerForQuiz(
@@ -67,6 +73,21 @@ export default function QuizInstructionsPage() {
 
     fetchQuiz();
   }, [quizId, needsVerification]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((settings) => {
+        if (settings?.timezoneLabel) {
+          setTimezoneLabel(settings.timezoneLabel);
+        }
+      })
+      .catch((error) => {
+        console.warn(
+          'Failed to load timezone setting, using default UTC:',
+          error,
+        );
+      });
+  }, []);
 
   if (needsVerification) {
     return <VerifyEmailPrompt />;
@@ -140,51 +161,103 @@ export default function QuizInstructionsPage() {
 
         <Card>
           <div className="border-b border-divider px-6 py-5">
-            <SectionTitle icon={<BookOpen className="h-4 w-4" />} title="Quiz details" />
+            <SectionTitle
+              icon={<BookOpen className="h-4 w-4" />}
+              title="Quiz details"
+            />
           </div>
           <div className="flex flex-col gap-6 px-6 py-6">
             <header className="flex flex-col gap-3">
               <AttemptStatusBadge status={quiz.attemptStatus} />
               <h1 className="text-h1 text-foreground">{quiz.title}</h1>
               {quiz.description && (
-                <p className="text-body text-foreground-secondary">{quiz.description}</p>
+                <p className="text-body text-foreground-secondary">
+                  {quiz.description}
+                </p>
               )}
             </header>
 
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Duration</dt>
-                <dd className="text-h3 text-foreground">{quiz.durationMinutes ?? '—'} min</dd>
-              </div>
-              <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Questions</dt>
-                <dd className="text-h3 text-foreground">{quiz.questionCount}</dd>
-              </div>
-              <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Starts</dt>
-                <dd className="text-small text-foreground">
-                  {quiz.startsAt ? new Date(quiz.startsAt).toLocaleDateString() : 'Anytime'}
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Duration
+                </dt>
+                <dd className="text-h3 text-foreground">
+                  {quiz.durationMinutes ?? '—'} min
                 </dd>
               </div>
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
-                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">Ends</dt>
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Questions
+                </dt>
+                <dd className="text-h3 text-foreground">
+                  {quiz.questionCount}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Starts
+                </dt>
                 <dd className="text-small text-foreground">
-                  {quiz.endsAt ? new Date(quiz.endsAt).toLocaleDateString() : 'No deadline'}
+                  {quiz.startsAt
+                    ? new Intl.DateTimeFormat('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        timeZone: getSafeTimezone(timezoneLabel),
+                      }).format(new Date(quiz.startsAt))
+                    : 'Anytime'}
+                </dd>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4">
+                <dt className="text-caption font-semibold uppercase tracking-wide text-foreground-secondary">
+                  Ends
+                </dt>
+                <dd className="text-small text-foreground">
+                  {quiz.endsAt
+                    ? new Intl.DateTimeFormat('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        timeZone: getSafeTimezone(timezoneLabel),
+                      }).format(new Date(quiz.endsAt))
+                    : 'No deadline'}
                 </dd>
               </div>
             </dl>
 
+            {quiz.startsAt && quiz.endsAt && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-slate-900">
+                    Schedule Window:
+                  </span>
+                  <span>
+                    {' '}
+                    {formatScheduleWindow(
+                      quiz.startsAt,
+                      quiz.endsAt,
+                      timezoneLabel,
+                    )}{' '}
+                  </span>
+                  <span className="rounded bg-primary-100 px-2 py-0.5 font-semibold text-primary-800">
+                    {timezoneLabel}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="flex flex-col gap-4 border-t border-divider pt-6">
               {canResume ? (
                 <>
                   <p className="text-small text-foreground">
-                    You have an in-progress attempt on this quiz. Continue where you left off.
+                    You have an in-progress attempt on this quiz. Continue where
+                    you left off.
                   </p>
                   <Button
                     asChild
                     className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
                   >
-                    <Link href={`/student/quiz/${quiz.id}/solve?attemptId=${quiz.attemptId}`}>
+                    <Link
+                      href={`/student/quiz/${quiz.id}/solve?attemptId=${quiz.attemptId}`}
+                    >
                       Continue quiz
                     </Link>
                   </Button>
@@ -200,25 +273,32 @@ export default function QuizInstructionsPage() {
                     asChild
                     className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
                   >
-                    <Link href={`/student/quiz/result/${quiz.attemptId}`}>View result</Link>
+                    <Link href={`/student/quiz/result/${quiz.attemptId}`}>
+                      View result
+                    </Link>
                   </Button>
                 </>
               ) : quiz.canStart ? (
                 <>
                   <p className="text-small text-foreground">
-                    Ready to begin? Click below to start the quiz. The timer will start immediately.
+                    Ready to begin? Click below to start the quiz. The timer
+                    will start immediately.
                   </p>
                   <Button
                     asChild
                     className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
                   >
-                    <Link href={`/student/quiz/${quiz.id}/solve`}>Start quiz</Link>
+                    <Link href={`/student/quiz/${quiz.id}/solve`}>
+                      Start quiz
+                    </Link>
                   </Button>
                 </>
               ) : (
                 <>
                   {quiz.reasonIfBlocked && (
-                    <StatusBanner variant="error">{quiz.reasonIfBlocked}</StatusBanner>
+                    <StatusBanner variant="error">
+                      {quiz.reasonIfBlocked}
+                    </StatusBanner>
                   )}
                   <Button
                     type="button"
@@ -235,7 +315,10 @@ export default function QuizInstructionsPage() {
 
         <Card>
           <div className="border-b border-divider px-6 py-5">
-            <SectionTitle icon={<Shield className="h-4 w-4" />} title="Before you start" />
+            <SectionTitle
+              icon={<Shield className="h-4 w-4" />}
+              title="Before you start"
+            />
           </div>
           <div className="px-6 py-6">
             <QuizRules embedded />

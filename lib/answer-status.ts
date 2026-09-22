@@ -9,8 +9,9 @@ export function getAnswerDisplayStatus(
   const hasText = (answer.textAnswer?.trim().length ?? 0) > 0;
   const hasChoice =
     answer.selectedOptionId != null && answer.selectedOptionId !== '';
-
-  if (!hasText && !hasChoice) return 'skipped';
+  const selectedIds = answer.selectedOptionIds;
+  const hasMultiChoice = Array.isArray(selectedIds) && selectedIds.length > 0;
+  if (!hasText && !hasChoice && !hasMultiChoice) return 'skipped';
 
   if (hasText) {
     if (answer.isCorrect === true) return 'correct';
