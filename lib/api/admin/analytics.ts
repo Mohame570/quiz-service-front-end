@@ -1,10 +1,24 @@
 // lib/api/admin/analytics.ts
 //
-// API client for the Sprint 2 live dashboard metrics.
-// Backend: GET /api/analytics/dashboard (ADMIN only, 403 otherwise)
+// API client for the analytics endpoints. getAnalyticsSummary() below
+// calls the original Sprint 1 org-wide summary (GET /api/analytics);
+// getDashboardMetrics() etc. call the Sprint 2 live dashboard
+// (GET /api/analytics/dashboard). Both endpoints still exist
+// server-side — kept side by side here since different pages use each.
 
 import { apiFetch } from '@/lib/api/client';
 import type { DashboardMetrics, QuizMetricSummary, StudentQuizStatus } from '@/types/analytics/analytics';
+
+export interface DashboardSummary {
+  totalQuizzes: number;
+  totalStudents: number;
+  totalAttempts: number;
+  averageScore: number;
+}
+
+export async function getAnalyticsSummary(): Promise<DashboardSummary> {
+  return apiFetch<DashboardSummary>('/api/analytics');
+}
 
 export interface StudentQuizMetric {
   studentId: string;
