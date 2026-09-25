@@ -415,19 +415,23 @@ export default function QuizSolvePage() {
             <h2 className="text-h3 text-foreground">{currentQuestion.text}</h2>
           </div>
 
+          {currentQuestion.type === 'CODE_CONTEXT' && currentQuestion.codeSnippet && (
+            <div className="mb-4 overflow-x-auto rounded-xl bg-slate-950 p-4" dir="ltr">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-caption font-semibold uppercase tracking-wide text-slate-400">
+                  {currentQuestion.codeLanguage || 'code'}
+                </span>
+                <span className="text-caption text-slate-500">read-only</span>
+              </div>
+              <pre className="whitespace-pre-wrap font-mono text-small leading-relaxed text-slate-100">
+                <code>{currentQuestion.codeSnippet}</code>
+              </pre>
+            </div>
+          )}
+
           {isTextQuestionType(currentQuestion.type) ? (
             <div>
-              {currentQuestion.type === 'SHORT_TEXT' ? (
-                <Input
-                  value={(answers[currentQuestion.id] as string) ?? ''}
-                  onChange={(e) =>
-                    handleTextChange(currentQuestion.id, e.target.value)
-                  }
-                  disabled={submitting}
-                  placeholder="Type your answer..."
-                  className="text-body"
-                />
-              ) : (
+              {currentQuestion.type === 'ESSAY' ? (
                 <Textarea
                   value={(answers[currentQuestion.id] as string) ?? ''}
                   onChange={(e) =>
@@ -436,6 +440,20 @@ export default function QuizSolvePage() {
                   disabled={submitting}
                   placeholder="Write your essay answer..."
                   rows={8}
+                  className="text-body"
+                />
+              ) : (
+                <Input
+                  value={(answers[currentQuestion.id] as string) ?? ''}
+                  onChange={(e) =>
+                    handleTextChange(currentQuestion.id, e.target.value)
+                  }
+                  disabled={submitting}
+                  placeholder={
+                    currentQuestion.type === 'FILL_BLANK'
+                      ? 'Type the missing word...'
+                      : 'Type your answer...'
+                  }
                   className="text-body"
                 />
               )}

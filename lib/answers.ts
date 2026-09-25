@@ -6,7 +6,7 @@ export type SaveAnswerItem =
   | { questionId: string; textAnswer: string | null };
 
 export function isTextQuestionType(type: QuestionType): boolean {
-  return type === 'SHORT_TEXT' || type === 'ESSAY';
+  return type === 'SHORT_TEXT' || type === 'ESSAY' || type === 'FILL_BLANK' || type === 'CODE_CONTEXT';
 }
 
 export function isMultiSelectType(type: QuestionType): boolean {
@@ -98,4 +98,6 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   TRUE_FALSE: 'True / False',
   SHORT_TEXT: 'Short Text',
   ESSAY: 'Essay',
+  CODE_CONTEXT: 'Code Context',
+  FILL_BLANK: 'Fill in the Blank',
 };

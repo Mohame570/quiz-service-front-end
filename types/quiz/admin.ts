@@ -14,6 +14,8 @@ export type QuizData = {
   status: QuizStatus;
   durationMinutes: number;
   passingScore: number;
+    maxAttempts: number | null;
+  scoreStrategy: 'BEST' | 'LATEST';
   startsAt: string;
   endsAt: string;
   createdById: string;

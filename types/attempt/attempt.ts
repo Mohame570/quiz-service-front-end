@@ -53,6 +53,8 @@ export type AttemptQuestion = {
   text: string;
   options: string[];
   order: number;
+  codeSnippet?: string | null;
+  codeLanguage?: string | null;
 };
 
 export type AttemptQuestionsResponse = {
@@ -75,4 +77,11 @@ export type SaveAnswersRequest = {
 
 export type SubmitAttemptRequest = {
   answers?: SaveAnswerItem[];
+};
+export type OfficialScoreResponse = {
+  quizId: string;
+  strategy: 'BEST' | 'LATEST';
+  officialScore: number | null;
+  attemptId: string | null;
+  attemptsCount: number;
 };

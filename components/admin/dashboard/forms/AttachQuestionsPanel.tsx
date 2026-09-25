@@ -311,6 +311,8 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                         { key: 'MULTI_SELECT', label: 'Multi' },
                         { key: 'SHORT_TEXT', label: 'Short Text' },
                         { key: 'ESSAY', label: 'Essay' },
+                        { key: 'CODE_CONTEXT', label: 'Code' },
+                        { key: 'FILL_BLANK', label: 'Blank' },
                       ] as const
                     ).map((option) => {
                       const isActive = typeFilter === option.key;

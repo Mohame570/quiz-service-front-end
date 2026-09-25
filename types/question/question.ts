@@ -6,6 +6,8 @@ export const QUESTION_TYPE = {
   TRUE_FALSE: 'TRUE_FALSE',
   SHORT_TEXT: 'SHORT_TEXT',
   ESSAY: 'ESSAY',
+  CODE_CONTEXT: 'CODE_CONTEXT',
+  FILL_BLANK: 'FILL_BLANK',
 } as const;
 
 export type QuestionType = (typeof QUESTION_TYPE)[keyof typeof QUESTION_TYPE];
@@ -25,6 +27,8 @@ export type Question = {
 export type StudentQuestion = {
   id: string;
   type: QuestionType;
+  codeSnippet?: string | null;
+  codeLanguage?: string | null;
   text: string;
   options: string[];
   order: number;
@@ -37,6 +41,8 @@ export type QuestionDto = {
   options: string[];
   correctAnswer: string;
   correctAnswers: string[];
+  codeSnippet: string | null;
+  codeLanguage: string | null;
   points: number;
   difficulty: string;
   topic: string | null;
@@ -52,6 +58,8 @@ export type CreateQuestionDto = {
   options?: string[];
   correctAnswer?: string;
   correctAnswers?: string[];
+  codeSnippet?: string;
+  codeLanguage?: string;
   points?: number;
   difficulty?: string;
   topic?: string;

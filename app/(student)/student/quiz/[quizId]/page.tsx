@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { BookOpen, Shield } from 'lucide-react';
 import { ApiError } from '@/lib/api/client';
-import { getQuiz } from '@/lib/api/student';
+import { getQuiz, getOfficialScore } from '@/lib/api/student';
+import type { OfficialScoreResponse } from '@/types/attempt/attempt';
 import { getPublicSettings } from '@/lib/api/admin/settings';
 import { useClientUser } from '@/lib/hooks/useClientUser';
 import {
@@ -37,6 +38,7 @@ export default function QuizInstructionsPage() {
   const quizId = params.quizId as string;
   const [state, setState] = useState<QuizPageState>({ status: 'loading' });
   const [timezoneLabel, setTimezoneLabel] = useState<string>('UTC');
+  const [official, setOfficial] = useState<OfficialScoreResponse | null>(null);
   const [inviteBanner] = useState<InviteBannerKind | null>(() => {
     if (typeof window === 'undefined') return null;
     return readInviteBannerForQuiz(
@@ -61,6 +63,9 @@ export default function QuizInstructionsPage() {
       try {
         const data = await getQuiz(quizId);
         setState({ status: 'ready', quiz: data });
+        getOfficialScore(quizId)
+          .then((score) => setOfficial(score))
+          .catch(() => setOfficial(null));
       } catch (err) {
         console.error('Failed to fetch quiz:', err);
         const message =
@@ -269,14 +274,39 @@ export default function QuizInstructionsPage() {
                       ? 'Your attempt was finalised when time ran out. Review your answers and score below.'
                       : 'You have already completed this quiz. Review your answers and score below.'}
                   </p>
-                  <Button
-                    asChild
-                    className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
-                  >
-                    <Link href={`/student/quiz/result/${quiz.attemptId}`}>
-                      View result
-                    </Link>
-                  </Button>
+                  {official?.officialScore != null && (
+                    <p className="text-small text-foreground">
+                      <span className="font-semibold">
+                        Official Score (
+                        {official.strategy === 'BEST' ? 'Best' : 'Latest'} Attempt):
+                      </span>{' '}
+                      {official.officialScore} · {official.attemptsCount} attempt
+                      {official.attemptsCount === 1 ? '' : 's'}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      asChild
+                      className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+                    >
+                      <Link href={`/student/quiz/result/${quiz.attemptId}`}>
+                        View result
+                      </Link>
+                    </Button>
+                    {quiz.canStart &&
+                      (quiz.maxAttempts == null ||
+                        (official?.attemptsCount ?? 0) < quiz.maxAttempts) && (
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="w-fit rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
+                        >
+                          <Link href={`/student/quiz/${quiz.id}/solve`}>
+                            Retake quiz
+                          </Link>
+                        </Button>
+                      )}
+                  </div>
                 </>
               ) : quiz.canStart ? (
                 <>

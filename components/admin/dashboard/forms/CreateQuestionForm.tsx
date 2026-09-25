@@ -30,6 +30,8 @@ const DEFAULT_VALUES: CreateQuestionFormInput = {
   text: '',
   options: [{ value: '' }, { value: '' }],
   correctAnswer: '',
+    codeSnippet: '',
+  codeLanguage: '',
   points: 1,
   quizIds: [],
 };
@@ -139,7 +141,22 @@ function CreateQuestionForm({
       dto.correctAnswers = values.correctAnswers;
     } else if (values.type === 'SHORT_TEXT') {
       dto.correctAnswer = values.correctAnswer;
+    } else if (values.type === 'FILL_BLANK') {
+      dto.correctAnswer = values.correctAnswer;
+    } else if (values.type === 'CODE_CONTEXT') {
+      dto.codeSnippet = values.codeSnippet?.trim();
+      dto.codeLanguage = values.codeLanguage?.trim() || undefined;
+      dto.correctAnswer = values.correctAnswer;
     }
+
+
+    const topic = values.topic?.trim();
+    if (topic) dto.topic = topic;
+    const tags = (values.tags ?? '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tags.length > 0) dto.tags = [...new Set(tags)];
 
     if (values.quizIds && values.quizIds.length > 0) {
       dto.quizIds = values.quizIds;
@@ -315,6 +332,46 @@ function CreateQuestionForm({
           </div>
         )}
 
+        {type === 'FILL_BLANK' && (
+          <div className="grid gap-2">
+            <Label htmlFor="q-correct-answer">Correct Answer</Label>
+            <Input
+              id="q-correct-answer"
+              placeholder="The exact word or phrase for the blank"
+              {...register('correctAnswer')}
+            />
+            <FieldError message={errors.correctAnswer?.message} />
+          </div>
+        )}
+
+        {type === 'CODE_CONTEXT' && (
+          <div className="grid gap-2">
+            <Label htmlFor="q-code-language">Code Language (optional)</Label>
+            <Input
+              id="q-code-language"
+              placeholder="e.g. python, javascript, sql"
+              {...register('codeLanguage')}
+            />
+            <Label htmlFor="q-code-snippet">Code Snippet</Label>
+            <Textarea
+              id="q-code-snippet"
+              placeholder="Paste the read-only code block the student will see..."
+              rows={8}
+              dir="ltr"
+              className="font-mono"
+              {...register('codeSnippet')}
+            />
+            <FieldError message={errors.codeSnippet?.message} />
+            <Label htmlFor="q-correct-answer">Correct Answer</Label>
+            <Input
+              id="q-correct-answer"
+              placeholder="Expected answer about the code"
+              {...register('correctAnswer')}
+            />
+            <FieldError message={errors.correctAnswer?.message} />
+          </div>
+        )}
+
         {type === 'ESSAY' && (
           <p className="text-small text-muted-foreground">
             Essay questions are graded manually — no correct answer needed.
@@ -325,6 +382,25 @@ function CreateQuestionForm({
           <Label htmlFor="q-points">Points</Label>
           <Input id="q-points" type="number" min={1} step={1} {...register('points')} />
           <FieldError message={errors.points?.message} />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="q-topic">Topic (optional)</Label>
+            <Input
+              id="q-topic"
+              placeholder="e.g. Algebra"
+              {...register('topic')}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="q-tags">Tags (optional, comma-separated)</Label>
+            <Input
+              id="q-tags"
+              placeholder="e.g. algebra, equations"
+              {...register('tags')}
+            />
+          </div>
         </div>
 
         <div className="grid gap-2">

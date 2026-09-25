@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { BookOpen, LayoutDashboard, LogOut, Search } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, Search, User } from "lucide-react";
 import { useQuizSearch } from "@/components/shared/QuizSearchProvider";
 import { clearToken } from "@/lib/auth/session";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -18,6 +18,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/student", icon: <LayoutDashboard className="h-4 w-4" /> },
   { label: "My Quizzes", href: "/student/quiz-list", icon: <BookOpen className="h-4 w-4" /> },
+  { label: "Profile", href: "/student/profile", icon: <User className="h-4 w-4" /> },
 ];
 
 function NavLink({
