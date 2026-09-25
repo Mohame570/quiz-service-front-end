@@ -15,6 +15,7 @@ export function getAnswerDisplayStatus(
 
   if (hasText) {
     if (answer.isCorrect === true) return 'correct';
+    if (answer.isCorrect === false) return 'incorrect';
     return 'pending';
   }
 
@@ -31,6 +32,12 @@ export function isCompletedQuiz(
 
 export function hasTextAnswers(answers: AttemptAnswerDto[]): boolean {
   return answers.some((a) => (a.textAnswer?.trim().length ?? 0) > 0);
+}
+
+export function hasPendingManualGrading(answers: AttemptAnswerDto[]): boolean {
+  return answers.some(
+    (a) => a.isCorrect === null && (a.textAnswer?.trim().length ?? 0) > 0,
+  );
 }
 
 export const ANSWER_STATUS_LABELS: Record<AnswerDisplayStatus, string> = {

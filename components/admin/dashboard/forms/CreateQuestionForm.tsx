@@ -150,6 +150,14 @@ function CreateQuestionForm({
     }
 
 
+    const topic = values.topic?.trim();
+    if (topic) dto.topic = topic;
+    const tags = (values.tags ?? '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tags.length > 0) dto.tags = [...new Set(tags)];
+
     if (values.quizIds && values.quizIds.length > 0) {
       dto.quizIds = values.quizIds;
     }
@@ -374,6 +382,25 @@ function CreateQuestionForm({
           <Label htmlFor="q-points">Points</Label>
           <Input id="q-points" type="number" min={1} step={1} {...register('points')} />
           <FieldError message={errors.points?.message} />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="q-topic">Topic (optional)</Label>
+            <Input
+              id="q-topic"
+              placeholder="e.g. Algebra"
+              {...register('topic')}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="q-tags">Tags (optional, comma-separated)</Label>
+            <Input
+              id="q-tags"
+              placeholder="e.g. algebra, equations"
+              {...register('tags')}
+            />
+          </div>
         </div>
 
         <div className="grid gap-2">

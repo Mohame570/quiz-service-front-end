@@ -118,6 +118,8 @@ export default async function EditPage({ params }: EditQuizPageProps) {
           status={quiz.status}
           durationMinutes={quiz.durationMinutes}
           passingScore={quiz.passingScore}
+          maxAttempts={quiz.maxAttempts ?? undefined}
+          scoreStrategy={quiz.scoreStrategy}
           startDate={toDateTimeLocal(quiz.startsAt, safeTimeZone)}
           endDate={toDateTimeLocal(quiz.endsAt, safeTimeZone)}
         />

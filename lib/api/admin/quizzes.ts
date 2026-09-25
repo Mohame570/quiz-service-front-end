@@ -37,8 +37,8 @@ export async function updateAdminQuiz(id: string, values: CreateQuizFormValues):
       passingScore: values.passingScore,
       ...(values.startDate ? { startsAt: values.startDate } : {}),
       ...(values.endDate ? { endsAt: values.endDate } : {}),
-      ...(values.maxAttempts != null ? { maxAttempts: values.maxAttempts } : {}),
-      ...(values.scoreStrategy ? { scoreStrategy: values.scoreStrategy } : {}),
+      maxAttempts: values.maxAttempts ?? null,
+      scoreStrategy: values.scoreStrategy ?? 'LATEST',
     }),
   });
 }
@@ -59,8 +59,8 @@ export async function createAdminQuiz(values: CreateQuizFormValues): Promise<Qui
       passingScore: values.passingScore,
       ...(values.startDate ? { startsAt: values.startDate } : {}),
       ...(values.endDate ? { endsAt: values.endDate } : {}),
-            ...(values.maxAttempts != null ? { maxAttempts: values.maxAttempts } : {}),
-      ...(values.scoreStrategy ? { scoreStrategy: values.scoreStrategy } : {}),
+            maxAttempts: values.maxAttempts ?? null,
+      scoreStrategy: values.scoreStrategy ?? 'LATEST',
       createdById: user.id,
     }),
   });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Container from '@/components/shared/Container';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import LoadingPanel from '@/components/shared/LoadingPanel';
@@ -101,9 +102,10 @@ export default function StudentProfilePage() {
           ) : (
             <div className="grid gap-3">
               {profile.history.map((item) => (
-                <div
+                <Link
                   key={item.attemptId}
-                  className="flex items-center justify-between rounded-xl border border-border px-4 py-3"
+                  href={`/student/quiz/result/${item.attemptId}`}
+                  className="flex items-center justify-between rounded-xl border border-border px-4 py-3 transition-colors hover:border-primary-300 hover:bg-primary-50"
                 >
                   <div>
                     <p className="font-medium text-foreground">{item.quizTitle}</p>
@@ -117,7 +119,7 @@ export default function StudentProfilePage() {
                     {item.score ?? '—'}/{item.maxScore ?? '—'}
                     {item.percentage != null && ` · ${item.percentage}%`}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

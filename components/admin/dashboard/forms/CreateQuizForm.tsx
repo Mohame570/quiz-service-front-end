@@ -8,7 +8,11 @@ import Card from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CreateQuizFormInput, CreateQuizFormValues, createQuizSchema } from '@/lib/validation';
+import {
+  CreateQuizFormInput,
+  CreateQuizFormValues,
+  createQuizSchema,
+} from '@/lib/validation';
 import { createAdminQuiz } from '@/lib/api/admin/quizzes';
 import SectionTitle from './FormSectionTitle';
 import FormLabel from './FormLabel';
@@ -21,8 +25,8 @@ const DEFAULT_VALUES: CreateQuizFormInput = {
   title: '',
   description: '',
   durationMinutes: 60,
-    maxAttempts: '',
-  scoreStrategy: '',
+  maxAttempts: '',
+  scoreStrategy: 'LATEST',
   passingScore: 50,
   startDate: '',
   endDate: '',
@@ -59,18 +63,26 @@ function CreateQuizForm() {
         }
       })
       .catch((error) => {
-        console.warn('Failed to fetch institutional settings, using local defaults:', error);
+        console.warn(
+          'Failed to fetch institutional settings, using local defaults:',
+          error,
+        );
       });
     return () => {
       mounted = false;
     };
   }, [reset]);
 
-  const submit = async (values: CreateQuizFormValues, redirectTo: 'questions' | 'dashboard') => {
+  const submit = async (
+    values: CreateQuizFormValues,
+    redirectTo: 'questions' | 'dashboard',
+  ) => {
     try {
       const quiz = await createAdminQuiz(values);
       router.push(
-        redirectTo === 'questions' ? `/admin/dashboard/edit/${quiz.id}/questions` : '/admin/dashboard'
+        redirectTo === 'questions'
+          ? `/admin/dashboard/edit/${quiz.id}/questions`
+          : '/admin/dashboard',
       );
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
@@ -80,16 +92,25 @@ function CreateQuizForm() {
         return;
       }
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'Failed to create quiz. Please try again.',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Failed to create quiz. Please try again.',
       });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values, 'questions'))} className="grid gap-6">
+    <form
+      onSubmit={handleSubmit((values) => submit(values, 'questions'))}
+      className="grid gap-6"
+    >
       <Card>
         <div className="border-b border-divider px-6 py-5">
-          <SectionTitle icon={<BookCopy className="h-4 w-4" />} title="Quiz Identity" />
+          <SectionTitle
+            icon={<BookCopy className="h-4 w-4" />}
+            title="Quiz Identity"
+          />
         </div>
 
         <div className="grid gap-5 px-6 py-6">
@@ -119,7 +140,10 @@ function CreateQuizForm() {
 
       <Card>
         <div className="border-b border-divider px-6 py-5">
-          <SectionTitle icon={<Settings2 className="h-4 w-4" />} title="Configuration" />
+          <SectionTitle
+            icon={<Settings2 className="h-4 w-4" />}
+            title="Configuration"
+          />
         </div>
 
         <div className="grid gap-6 px-6 py-6">
@@ -154,40 +178,41 @@ function CreateQuizForm() {
             </div>
           </div>
 
-            <div className="grid gap-2">
-              <FormLabel htmlFor="maxAttempts" label="Max Attempts (optional)" />
-              <Input
-                id="maxAttempts"
-                type="number"
-                min={1}
-                step={1}
-                placeholder="Unlimited"
-                aria-invalid={Boolean(errors.maxAttempts)}
-                {...register('maxAttempts')}
-              />
-              <FieldError message={errors.maxAttempts?.message} />
-            </div>
+          <div className="grid gap-2">
+            <FormLabel htmlFor="maxAttempts" label="Max Attempts (optional)" />
+            <Input
+              id="maxAttempts"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="Unlimited"
+              aria-invalid={Boolean(errors.maxAttempts)}
+              {...register('maxAttempts')}
+            />
+            <FieldError message={errors.maxAttempts?.message} />
+          </div>
 
-            <div className="grid gap-2">
-              <FormLabel htmlFor="scoreStrategy" label="Official Score" />
-              <select
-                id="scoreStrategy"
-                aria-invalid={Boolean(errors.scoreStrategy)}
-                {...register('scoreStrategy')}
-                className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground outline-none focus:border-primary-300"
-              >
-                <option value="">Default (Latest)</option>
-                <option value="BEST">Best attempt</option>
-                <option value="LATEST">Latest attempt</option>
-              </select>
-              <FieldError message={errors.scoreStrategy?.message} />
-            </div>
+          <div className="grid gap-2">
+            <FormLabel htmlFor="scoreStrategy" label="Official Score" />
+            <select
+              id="scoreStrategy"
+              aria-invalid={Boolean(errors.scoreStrategy)}
+              {...register('scoreStrategy')}
+              className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground outline-none focus:border-primary-300"
+            >
+              <option value="LATEST">Latest attempt (Default)</option>
+              <option value="BEST">Best attempt</option>
+            </select>
+            <FieldError message={errors.scoreStrategy?.message} />
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <FormLabel
                 htmlFor="startDate"
-                label={timezoneLabel ? `Starts At (${timezoneLabel})` : 'Starts At'}
+                label={
+                  timezoneLabel ? `Starts At (${timezoneLabel})` : 'Starts At'
+                }
               />
               <Input
                 id="startDate"
