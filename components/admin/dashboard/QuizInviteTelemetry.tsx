@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { getInvitationStatus } from '@/lib/api/admin/notifications';
 import type { InvitationStatus } from '@/types/notification/notification';
 import InviteStudentsPanel from './forms/InviteStudentsPanel';
+import QuizInviteesModal from './QuizInviteesModal';
+import QuizReminderModal from './QuizReminderModal';
 import { QuizDetail, QuizData } from '@/types/quiz/admin';
 
 type Props = {
@@ -72,7 +74,7 @@ export default function QuizInviteTelemetry({ quiz }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -83,6 +85,16 @@ export default function QuizInviteTelemetry({ quiz }: Props) {
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+
+          <QuizInviteesModal quizId={quiz.id} quizTitle={quiz.title} />
+
+          {quiz.status === 'PUBLISHED' && (
+            <QuizReminderModal
+              quizId={quiz.id}
+              quizTitle={quiz.title}
+              onRemindersSent={fetchTelemetry}
+            />
+          )}
 
           {quiz.status === 'PUBLISHED' ? (
             <InviteStudentsPanel quizId={quiz.id} quizTitle={quiz.title} />

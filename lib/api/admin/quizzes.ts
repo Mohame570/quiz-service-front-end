@@ -3,6 +3,11 @@ import { QuizData, QuizDetail, QuizStatus, PaginatedQuizData } from '@/types/qui
 import { CreateQuizFormValues } from '@/lib/validation';
 import { getUser } from '@/lib/auth/session';
 import { toApiStatusParam } from '@/lib/quiz-status';
+import type {
+  QuizInvitee,
+  ReminderPreviewResponse,
+  SendRemindersResponse,
+} from '@/types/quiz/invitation';
 
 export async function getAdminQuizzes(params?: {
   search?: string;
@@ -97,4 +102,18 @@ export async function updateAdminQuizStatus(id: string, status: QuizStatus): Pro
 
 export async function archiveAdminQuiz(id: string): Promise<QuizData> {
   return updateAdminQuizStatus(id, 'ARCHIVED');
+}
+
+export async function getQuizInvitations(quizId: string): Promise<QuizInvitee[]> {
+  return apiFetch<QuizInvitee[]>(`/api/admin/quizzes/${quizId}/invitations`);
+}
+
+export async function getQuizReminderPreview(quizId: string): Promise<ReminderPreviewResponse> {
+  return apiFetch<ReminderPreviewResponse>(`/api/admin/quizzes/${quizId}/reminders/preview`);
+}
+
+export async function sendQuizReminders(quizId: string): Promise<SendRemindersResponse> {
+  return apiFetch<SendRemindersResponse>(`/api/admin/quizzes/${quizId}/reminders`, {
+    method: 'POST',
+  });
 }
