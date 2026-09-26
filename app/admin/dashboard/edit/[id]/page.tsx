@@ -2,15 +2,40 @@ import Link from 'next/link';
 import EditQuizForm from '@/components/admin/dashboard/forms/EditQuizForm';
 import { Button } from '@/components/ui/button';
 import { getAdminQuizById } from '@/lib/api/admin/quizzes';
+import { getSettings } from '@/lib/api/admin/settings';
 import { QUIZ_STATUS_LABEL, getQuizStatusPill } from '@/lib/quiz-status';
 import { ApiError } from '@/lib/api/client';
+import { getSafeTimezone } from '@/lib/date';
+
 type EditQuizPageProps = {
   params: Promise<{ id: string }>;
 };
 
+function toDateTimeLocal(value: string | null, timezoneLabel: string): string {
+  if (!value) return '';
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezoneLabel,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  })
+    .formatToParts(new Date(value))
+    .reduce<Record<string, string>>((result, part) => {
+      if (part.type !== 'literal') result[part.type] = part.value;
+      return result;
+    }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
 export default async function EditPage({ params }: EditQuizPageProps) {
   const { id } = await params;
   let quiz;
+  let safeTimeZone: string = 'UTC';
 
   try {
     quiz = await getAdminQuizById(id);
@@ -32,6 +57,14 @@ export default async function EditPage({ params }: EditQuizPageProps) {
   }
   
   if (!quiz) return null;
+  try {
+      const settings = await getSettings();
+      const timezoneLabel = settings.timezoneLabel;
+      safeTimeZone = getSafeTimezone(timezoneLabel);
+  } catch (err) {
+      console.warn('Failed to load settings in EditPage, falling back to UTC:', err);
+  }
+
 
   const statusPill = getQuizStatusPill(quiz.status);
 
@@ -85,8 +118,10 @@ export default async function EditPage({ params }: EditQuizPageProps) {
           status={quiz.status}
           durationMinutes={quiz.durationMinutes}
           passingScore={quiz.passingScore}
-          startDate={quiz.startsAt?.slice(0, 10) ?? ''}
-          endDate={quiz.endsAt?.slice(0, 10) ?? ''}
+          maxAttempts={quiz.maxAttempts ?? undefined}
+          scoreStrategy={quiz.scoreStrategy}
+          startDate={toDateTimeLocal(quiz.startsAt, safeTimeZone)}
+          endDate={toDateTimeLocal(quiz.endsAt, safeTimeZone)}
         />
       </section>
     </main>

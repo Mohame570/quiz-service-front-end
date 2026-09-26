@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FileQuestion,
   BarChart3,
+  ClipboardList,
   Bell,
   ShieldCheck,
   Users,
@@ -37,6 +38,11 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     icon: <BarChart3 className="h-4 w-4" />,
   },
   {
+    label: 'Follow-up',
+    href: '/admin/dashboard/follow-up',
+    icon: <ClipboardList className="h-4 w-4" />,
+  },
+  {
     label: 'Notifications',
     href: '/admin/dashboard/notifications',
     icon: <Bell className="h-4 w-4" />,
@@ -55,7 +61,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Settings',
     href: '/admin/dashboard/settings',
     icon: <Settings className="h-4 w-4" />,
-    comingSoon: true,
   },
 ];
 

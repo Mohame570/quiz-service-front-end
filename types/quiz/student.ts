@@ -6,6 +6,7 @@ export type QuizDto = {
   description: string | null;
   durationMinutes: number | null;
   passingScore: number | null;
+  maxAttempts: number | null;
   startsAt: string | null;
   endsAt: string | null;
   questionCount: number;

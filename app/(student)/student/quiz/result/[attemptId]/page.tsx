@@ -19,7 +19,7 @@ import {
   ANSWER_STATUS_LABELS,
   ANSWER_STATUS_STYLES,
   getAnswerDisplayStatus,
-  hasTextAnswers,
+  hasPendingManualGrading,
 } from '@/lib/answer-status';
 
 type LoadState =
@@ -178,7 +178,7 @@ export default function ResultPage() {
   const correctCount = answerStatuses.filter((s) => s === 'correct').length;
   const incorrectCount = answerStatuses.filter((s) => s === 'incorrect').length;
   const pendingCount = answerStatuses.filter((s) => s === 'pending').length;
-  const hasPendingText = hasTextAnswers(attempt.answers);
+  const hasPendingText = hasPendingManualGrading(attempt.answers);
 
   let bannerVariant: 'success' | 'error' | 'warning' = 'warning';
   let bannerLabel = 'Result';
@@ -229,8 +229,8 @@ export default function ResultPage() {
 
           {hasPendingText && (
             <StatusBanner variant="warning">
-              Short text and essay answers are saved but not auto-graded yet. Your
-              overall score reflects multiple-choice and true/false questions only.
+              Some answers need manual grading. Your overall score will update
+              once they are reviewed.
             </StatusBanner>
           )}
 
@@ -279,10 +279,11 @@ export default function ResultPage() {
                 {attempt.answers.map((answer, idx) => {
                   const status = getAnswerDisplayStatus(answer);
                   const styles = ANSWER_STATUS_STYLES[status];
+                 const multi = answer.selectedOptionIds;
                   const displayAnswer =
                     answer.textAnswer ??
                     answer.selectedOptionId ??
-                    'Skipped';
+                    (Array.isArray(multi) && multi.length > 0 ? multi.join(', ') : 'Skipped');
                   const truncatedAnswer =
                     displayAnswer.length > 120
                       ? `${displayAnswer.slice(0, 120)}…`

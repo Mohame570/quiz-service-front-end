@@ -21,6 +21,7 @@ export type AttemptAnswerDto = {
   attemptId: string;
   questionId: string;
   selectedOptionId: string | null;
+    selectedOptionIds?: string[] | null;
   textAnswer: string | null;
   isCorrect: boolean | null;
   answeredAt: string;
@@ -52,6 +53,8 @@ export type AttemptQuestion = {
   text: string;
   options: string[];
   order: number;
+  codeSnippet?: string | null;
+  codeLanguage?: string | null;
 };
 
 export type AttemptQuestionsResponse = {
@@ -63,8 +66,9 @@ export type AttemptQuestionsResponse = {
   answers?: AttemptAnswerDto[];
 };
 
-export type SaveAnswerItem =
+export type SaveAnswerItem = 
   | { questionId: string; selectedOptionId: string | null }
+  | { questionId: string; selectedOptionIds: string[] }
   | { questionId: string; textAnswer: string | null };
 
 export type SaveAnswersRequest = {
@@ -73,4 +77,11 @@ export type SaveAnswersRequest = {
 
 export type SubmitAttemptRequest = {
   answers?: SaveAnswerItem[];
+};
+export type OfficialScoreResponse = {
+  quizId: string;
+  strategy: 'BEST' | 'LATEST';
+  officialScore: number | null;
+  attemptId: string | null;
+  attemptsCount: number;
 };

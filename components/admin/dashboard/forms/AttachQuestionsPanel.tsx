@@ -18,13 +18,6 @@ import SectionTitle from './FormSectionTitle';
 import FieldError from './FormFieldError';
 import CreateQuestionForm from './CreateQuestionForm';
 
-const TYPE_LABELS: Record<QuestionType, string> = {
-  MCQ: 'Multiple Choice',
-  TRUE_FALSE: 'True / False',
-  SHORT_TEXT: 'Short Text',
-  ESSAY: 'Essay',
-};
-
 type SelectedEntry = { question: QuestionDto; order: number };
 
 function SuccessBanner({ message }: { message?: string | null }) {
@@ -257,7 +250,7 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                   <div className="min-w-0 flex-1">
                     <p className="text-small font-medium text-foreground">{q.text}</p>
                     <p className="mt-0.5 text-caption text-muted-foreground">
-                      {TYPE_LABELS[q.type]}
+                      {QUESTION_TYPE_LABELS[q.type]}
                     </p>
                   </div>
                 </li>
@@ -309,14 +302,17 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                 </div>
 
                 <div className="rounded-2xl border border-border bg-surface p-1">
-                  <div className="grid grid-cols-5 gap-1">
+                  <div className="grid grid-cols-3 gap-1">
                     {(
                       [
                         { key: 'ALL', label: 'All' },
                         { key: 'MCQ', label: 'MCQ' },
                         { key: 'TRUE_FALSE', label: 'True/False' },
+                        { key: 'MULTI_SELECT', label: 'Multi' },
                         { key: 'SHORT_TEXT', label: 'Short Text' },
                         { key: 'ESSAY', label: 'Essay' },
+                        { key: 'CODE_CONTEXT', label: 'Code' },
+                        { key: 'FILL_BLANK', label: 'Blank' },
                       ] as const
                     ).map((option) => {
                       const isActive = typeFilter === option.key;
@@ -398,7 +394,7 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                           <div className="min-w-0 flex-1">
                             <p className="text-small font-medium text-foreground">{q.text}</p>
                             <p className="mt-0.5 text-caption text-muted-foreground">
-                              {TYPE_LABELS[q.type]} · {q.points} pts
+                              {QUESTION_TYPE_LABELS[q.type]} · {q.points} pts
                               {alreadyAttached && ' · Already attached'}
                             </p>
                           </div>
@@ -426,7 +422,7 @@ function AttachQuestionsPanel({ quizId, status }: { quizId: string; status: Quiz
                         <div className="min-w-0 flex-1">
                           <p className="text-small font-medium text-foreground">{question.text}</p>
                           <p className="mt-0.5 text-caption text-muted-foreground">
-                            {TYPE_LABELS[question.type]}
+                            {QUESTION_TYPE_LABELS[question.type]}
                           </p>
                         </div>
                         <label className="flex items-center gap-1 text-caption text-muted-foreground">

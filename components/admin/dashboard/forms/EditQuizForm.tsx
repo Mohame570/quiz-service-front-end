@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { EditQuizFormInput, EditQuizFormValues, editQuizSchema } from '@/lib/validation';
+import {
+  EditQuizFormInput,
+  EditQuizFormValues,
+  editQuizSchema,
+} from '@/lib/validation';
 import {
   updateAdminQuiz,
   unpublishAdminQuiz,
@@ -29,9 +33,16 @@ const ARCHIVE_DISABLED_TOOLTIP =
 const DELETE_DISABLED_TOOLTIP =
   'Cannot delete a quiz that already has student attempts. Archive it instead by setting its status to "archived".';
 
-type EditQuizFormProps = EditQuizFormInput & { id: string; hasAttempts: boolean };
+type EditQuizFormProps = EditQuizFormInput & {
+  id: string;
+  hasAttempts: boolean;
+};
 
-function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) {
+function EditQuizForm({
+  id,
+  hasAttempts,
+  ...defaultValues
+}: EditQuizFormProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const initialStatus = defaultValues.status;
@@ -51,20 +62,26 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
     formState: { errors, isSubmitting },
   } = form;
 
-  const submit = async (values: EditQuizFormValues, redirectTo: 'questions' | 'dashboard') => {
-    const isArchiving = values.status === 'ARCHIVED' && initialStatus !== 'ARCHIVED';
-    const isUnarchiving = initialStatus === 'ARCHIVED' && values.status === 'DRAFT';
+  const submit = async (
+    values: EditQuizFormValues,
+    redirectTo: 'questions' | 'dashboard',
+  ) => {
+    const isArchiving =
+      values.status === 'ARCHIVED' && initialStatus !== 'ARCHIVED';
+    const isUnarchiving =
+      initialStatus === 'ARCHIVED' && values.status === 'DRAFT';
     if (isArchiving) {
       const confirmed = confirm(
-        `Archive "${defaultValues.title}"? It will be removed from students' active list, just like closing it.`
+        `Archive "${defaultValues.title}"? It will be removed from students' active list, just like closing it.`,
       );
       if (!confirmed) return;
     }
     const isReopening =
-      (initialStatus === 'PUBLISHED' || initialStatus === 'CLOSED') && values.status === 'DRAFT';
+      (initialStatus === 'PUBLISHED' || initialStatus === 'CLOSED') &&
+      values.status === 'DRAFT';
     if (isClosed && values.status === 'DRAFT') {
       const confirmed = confirm(
-        `Reopen "${defaultValues.title}" as a draft? It will need to be published again before students can take it.`
+        `Reopen "${defaultValues.title}" as a draft? It will need to be published again before students can take it.`,
       );
       if (!confirmed) return;
     }
@@ -87,12 +104,16 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
       if (isUnarchiving) {
         await updateAdminQuizStatus(id, 'DRAFT');
         router.push(
-          redirectTo === 'questions' ? `/admin/dashboard/edit/${id}/questions` : '/admin/dashboard'
+          redirectTo === 'questions'
+            ? `/admin/dashboard/edit/${id}/questions`
+            : '/admin/dashboard',
         );
         return;
       }
       router.push(
-        redirectTo === 'questions' ? `/admin/dashboard/edit/${id}/questions` : '/admin/dashboard'
+        redirectTo === 'questions'
+          ? `/admin/dashboard/edit/${id}/questions`
+          : '/admin/dashboard',
       );
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
@@ -102,13 +123,18 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
         return;
       }
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'Failed to update quiz. Please try again.',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Failed to update quiz. Please try again.',
       });
     }
   };
 
   const handleDelete = async () => {
-    const confirmed = confirm(`Delete "${defaultValues.title}"? This cannot be undone.`);
+    const confirmed = confirm(
+      `Delete "${defaultValues.title}"? This cannot be undone.`,
+    );
     if (!confirmed) return;
     setIsDeleting(true);
     try {
@@ -123,7 +149,10 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
       }
 
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'Failed to delete quiz. Please try again.',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Failed to delete quiz. Please try again.',
       });
     } finally {
       setIsDeleting(false);
@@ -131,7 +160,10 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit((values) => submit(values, 'questions'))} className="grid gap-6">
+    <form
+      onSubmit={handleSubmit((values) => submit(values, 'questions'))}
+      className="grid gap-6"
+    >
       {isLocked && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-small text-amber-700">
           {isPublished
@@ -142,7 +174,10 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
 
       <Card>
         <div className="border-b border-divider px-6 py-5">
-          <SectionTitle icon={<BookCopy className="h-4 w-4" />} title="Quiz Identity" />
+          <SectionTitle
+            icon={<BookCopy className="h-4 w-4" />}
+            title="Quiz Identity"
+          />
         </div>
 
         <div className="grid gap-5 px-6 py-6">
@@ -176,7 +211,10 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
 
       <Card>
         <div className="border-b border-divider px-6 py-5">
-          <SectionTitle icon={<Settings2 className="h-4 w-4" />} title="Configuration" />
+          <SectionTitle
+            icon={<Settings2 className="h-4 w-4" />}
+            title="Configuration"
+          />
         </div>
 
         <div className="grid gap-6 px-6 py-6">
@@ -212,6 +250,33 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <FieldError message={errors.passingScore?.message} />
             </div>
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="maxAttempts">Max Attempts (optional)</Label>
+            <Input
+              id="maxAttempts"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="Unlimited"
+              aria-invalid={Boolean(errors.maxAttempts)}
+              {...register('maxAttempts')}
+            />
+            <FieldError message={errors.maxAttempts?.message} />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="scoreStrategy">Official Score</Label>
+            <select
+              id="scoreStrategy"
+              aria-invalid={Boolean(errors.scoreStrategy)}
+              {...register('scoreStrategy')}
+              className="flex h-12 w-full rounded-xl border border-border bg-surface px-4 text-body text-foreground outline-none focus:border-primary-300"
+            >
+              <option value="LATEST">Latest attempt (Default)</option>
+              <option value="BEST">Best attempt</option>
+            </select>
+            <FieldError message={errors.scoreStrategy?.message} />
+          </div>
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status</Label>
@@ -228,7 +293,9 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
             >
               {initialStatus === 'PUBLISHED' ? (
                 <>
-                  <option value="PUBLISHED">{QUIZ_STATUS_LABEL.PUBLISHED}</option>
+                  <option value="PUBLISHED">
+                    {QUIZ_STATUS_LABEL.PUBLISHED}
+                  </option>
                   <option value="DRAFT">{QUIZ_STATUS_LABEL.DRAFT}</option>
                   <option
                     value="ARCHIVED"
@@ -256,27 +323,33 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
                   </option>
                 </>
               ) : (
-                <option value={initialStatus}>{QUIZ_STATUS_LABEL[initialStatus]}</option>
+                <option value={initialStatus}>
+                  {QUIZ_STATUS_LABEL[initialStatus]}
+                </option>
               )}
             </select>
             {!isLocked && initialStatus !== 'ARCHIVED' && (
               <p className="text-small text-muted-foreground">
-                Publish this quiz from the Manage Questions page once it has attached questions.
+                Publish this quiz from the Manage Questions page once it has
+                attached questions.
               </p>
             )}
             {isLocked && !hasAttempts && (
-              <p className="text-small text-muted-foreground">{ARCHIVE_DISABLED_TOOLTIP}</p>
+              <p className="text-small text-muted-foreground">
+                {ARCHIVE_DISABLED_TOOLTIP}
+              </p>
             )}
             {initialStatus === 'ARCHIVED' && (
               <p className="text-small text-muted-foreground">
-                Switch back to Draft to unarchive this quiz. You&apos;ll need to publish it again
-                for students to take it.
+                Switch back to Draft to unarchive this quiz. You&apos;ll need to
+                publish it again for students to take it.
               </p>
             )}
             {isClosed && (
               <p className="text-small text-muted-foreground">
-                This quiz&apos;s window has closed. Switch to Draft to reopen it for editing —
-                you&apos;ll need to publish it again for students to take it.
+                This quiz&apos;s window has closed. Switch to Draft to reopen it
+                for editing — you&apos;ll need to publish it again for students
+                to take it.
               </p>
             )}
             <FieldError message={errors.status?.message} />
@@ -287,7 +360,7 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <Label htmlFor="startDate">Starts At</Label>
               <Input
                 id="startDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.startDate)}
                 disabled={isLocked}
                 {...register('startDate')}
@@ -299,7 +372,7 @@ function EditQuizForm({ id, hasAttempts, ...defaultValues }: EditQuizFormProps) 
               <Label htmlFor="endDate">Ends At</Label>
               <Input
                 id="endDate"
-                type="date"
+                type="datetime-local"
                 aria-invalid={Boolean(errors.endDate)}
                 disabled={isLocked}
                 {...register('endDate')}
