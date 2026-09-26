@@ -7,7 +7,8 @@ import type {
   AttemptWithAnswersDto,
   SaveAnswersRequest,
   SubmitAttemptRequest,
-  OfficialScoreResponse
+  OfficialScoreResponse,
+  CertificatePublicView
 } from '@/types/attempt/attempt';
 
 export async function getQuizzes(): Promise<QuizDto[]> {
@@ -109,4 +110,26 @@ export type StudentProfileResponse = {
 
 export async function getStudentProfile(): Promise<StudentProfileResponse> {
   return apiFetch<StudentProfileResponse>('/api/student/profile');
+}
+export async function getMyCertificate(
+  attemptId: string,
+): Promise<CertificatePublicView> {
+  return apiFetch<CertificatePublicView>(
+    `/api/student/certificates/attempts/${attemptId}`,
+  );
+}
+
+export async function issueCertificate(
+  attemptId: string,
+): Promise<CertificatePublicView> {
+  return apiFetch<CertificatePublicView>(
+    `/api/student/certificates/attempts/${attemptId}`,
+    { method: 'POST', body: JSON.stringify({}) },
+  );
+}
+
+export async function verifyCertificate(
+  code: string,
+): Promise<CertificatePublicView> {
+  return apiFetch<CertificatePublicView>(`/api/certificates/${code}`);
 }

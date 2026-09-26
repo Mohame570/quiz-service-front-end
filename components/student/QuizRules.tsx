@@ -17,16 +17,16 @@ const INTEGRITY_RULES = [
     text: 'No external help. This is an individual assessment.',
     severity: 'warning' as const,
   },
-  {
+   {
     id: 'timer-starts',
     icon: '⏱',
-    text: 'The timer starts as soon as you click Start and cannot be paused.',
+    text: 'The timer starts as soon as you click Start and cannot be paused. When time runs out, your answers are submitted automatically.',
     severity: 'info' as const,
   },
   {
-    id: 'no-retake',
-    icon: '🔒',
-    text: 'You cannot retake the quiz once submitted.',
+    id: 'retake-policy',
+    icon: '🔁',
+    text: 'Each submission uses one attempt. Your official score is taken from your BEST or LATEST attempt as configured for this quiz.',
     severity: 'info' as const,
   },
 ];

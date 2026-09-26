@@ -173,8 +173,15 @@ export default function QuizSolvePage() {
           return;
         }
 
-        console.error('Failed to start attempt:', err);
-        setError(msg || 'Failed to start attempt.');
+     console.error('Failed to start attempt:', err);
+        if (err instanceof ApiError && err.status === 403) {
+          setErrorTitle('No attempts left');
+          setError(
+            'You have used all attempts for this quiz. Review your official score and result instead.'
+          );
+        } else {
+          setError(msg || 'Failed to start attempt.');
+        }
         setPhase('error');
       }
     }
@@ -379,6 +386,16 @@ export default function QuizSolvePage() {
             </Button>
           </div>
         </header>
+
+
+        {lowTime && phase === 'ready' && (
+          <StatusBanner variant="warning">
+<span className="font-medium">Less than a minute left.</span>{' '}
+            Your answers save automatically — they will be submitted when the
+            timer reaches zero.
+          </StatusBanner>
+        )}
+
 
         {showIntegrityNotice && (
           <div className="relative">
