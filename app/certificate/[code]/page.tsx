@@ -15,6 +15,17 @@ export default function PublicCertificatePage() {
   const code = params.code as string;
   const [cert, setCert] = useState<CertificatePublicView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +79,13 @@ export default function PublicCertificatePage() {
           <p className="mt-2 text-caption text-muted-foreground">
             Issued {new Date(cert.issuedAt).toLocaleDateString()} · Code {cert.code}
           </p>
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="mt-4 rounded-full border border-primary-200 px-6 py-2 text-small font-medium text-primary-800 transition-colors hover:bg-primary-50"
+          >
+            {copied ? 'Copied!' : 'Copy shareable link'}
+          </button>
         </Card>
       </div>
     </Container>

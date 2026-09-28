@@ -111,14 +111,6 @@ export type StudentProfileResponse = {
 export async function getStudentProfile(): Promise<StudentProfileResponse> {
   return apiFetch<StudentProfileResponse>('/api/student/profile');
 }
-export async function getMyCertificate(
-  attemptId: string,
-): Promise<CertificatePublicView> {
-  return apiFetch<CertificatePublicView>(
-    `/api/student/certificates/attempts/${attemptId}`,
-  );
-}
-
 export async function issueCertificate(
   attemptId: string,
 ): Promise<CertificatePublicView> {
@@ -131,5 +123,9 @@ export async function issueCertificate(
 export async function verifyCertificate(
   code: string,
 ): Promise<CertificatePublicView> {
-  return apiFetch<CertificatePublicView>(`/api/certificates/${code}`);
+  // Public route: never attach auth headers, so a stale logged-out token
+  // can never turn into a 401 + force-redirect to /login.
+  return apiFetch<CertificatePublicView>(`/api/certificates/${code}`, {
+    requireAuth: false,
+  });
 }
