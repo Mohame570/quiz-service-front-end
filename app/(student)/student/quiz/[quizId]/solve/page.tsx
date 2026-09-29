@@ -90,6 +90,17 @@ function formatTime(totalSeconds: number): string {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+function formatWindowMessage(msg: string): string {
+  const isoMatch = msg.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?/);
+  const datePart = isoMatch ? new Date(isoMatch[0]).toLocaleString() : null;
+  if (msg.toLowerCase().includes('not opened yet')) {
+    return datePart
+      ? `This quiz has not opened yet — it opens on ${datePart}. Come back then.`
+      : 'This quiz has not opened yet. Come back later.';
+  }
+  return 'This quiz window has closed. Check your results or profile instead.';
+}
+
 type Phase = 'init' | 'loading' | 'ready' | 'submitting' | 'error';
 
 export default function QuizSolvePage() {
@@ -173,8 +184,28 @@ export default function QuizSolvePage() {
           return;
         }
 
-        console.error('Failed to start attempt:', err);
-        setError(msg || 'Failed to start attempt.');
+        if (err instanceof ApiError && err.status === 409) {
+          console.error('Quiz not in window:', err);
+          setErrorTitle('Quiz not available');
+          setError(formatWindowMessage(msg));
+          setPhase('error');
+          return;
+        }
+
+     console.error('Failed to start attempt:', err);
+        if (err instanceof ApiError && err.status === 403) {
+          if (msg.toLowerCase().includes('attempt limit')) {
+            setErrorTitle('No attempts left');
+            setError(
+              'You have used all attempts for this quiz. Review your official score and result instead.'
+            );
+          } else {
+            setErrorTitle('Access denied');
+            setError(msg || 'You cannot start this quiz.');
+          }
+        } else {
+          setError(msg || 'Failed to start attempt.');
+        }
         setPhase('error');
       }
     }
@@ -379,6 +410,16 @@ export default function QuizSolvePage() {
             </Button>
           </div>
         </header>
+
+
+        {lowTime && phase === 'ready' && (
+          <StatusBanner variant="warning">
+<span className="font-medium">Less than a minute left.</span>{' '}
+            Your answers save automatically — they will be submitted when the
+            timer reaches zero.
+          </StatusBanner>
+        )}
+
 
         {showIntegrityNotice && (
           <div className="relative">

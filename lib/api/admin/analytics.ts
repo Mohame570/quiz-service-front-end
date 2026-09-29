@@ -32,3 +32,25 @@ export async function getQuizMetricSummary(quizId: string): Promise<QuizMetricSu
 export async function getStudentQuizMetrics(quizId: string): Promise<StudentQuizMetric[]> {
   return apiFetch<StudentQuizMetric[]>(`/api/analytics/quizzes/${quizId}/student-metrics`);
 }
+
+// ---------------------------------------------------------------------------
+// Back-compat shim for pre-existing dashboard callers that still use the
+// legacy summary shape (totalStudents / totalAttempts).
+// ---------------------------------------------------------------------------
+
+export type DashboardSummary = {
+  totalQuizzes: number;
+  totalStudents: number;
+  totalAttempts: number;
+  averageScore: number | null;
+};
+
+export async function getAnalyticsSummary(): Promise<DashboardSummary> {
+  const metrics = await getDashboardMetrics();
+  return {
+    totalQuizzes: metrics.totalQuizzes,
+    totalStudents: metrics.distinctStudentCount,
+    totalAttempts: metrics.participationCount,
+    averageScore: metrics.averageScore,
+  };
+}

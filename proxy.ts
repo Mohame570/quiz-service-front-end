@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   '/invitation',
   '/api',
   '/quiz',
+  '/certificate',
 ];
 
 export function proxy(request: NextRequest) {

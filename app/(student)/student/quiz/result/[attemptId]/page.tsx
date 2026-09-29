@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams , useRouter} from 'next/navigation';
 import { Award, CheckCircle, Clock, Percent, XCircle } from 'lucide-react';
-import { getAttemptResult } from '@/lib/api/student';
+import { getAttemptResult,issueCertificate  } from '@/lib/api/student';
 import type { AttemptWithAnswersDto } from '@/types/attempt/attempt';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import Container from '@/components/shared/Container';
@@ -64,6 +64,22 @@ function ResultEmptyState({
 export default function ResultPage() {
   const params = useParams();
   const attemptId = toIdOrNull(params.attemptId as string);
+    const router = useRouter();
+  const [certLoading, setCertLoading] = useState(false);
+  const [certError, setCertError] = useState<string | null>(null);
+
+  const handleViewCertificate = async () => {
+    if (!attemptId || certLoading) return;
+    setCertLoading(true);
+    setCertError(null);
+    try {
+      const cert = await issueCertificate(attemptId);
+      router.push(`/certificate/${cert.code}`);
+    } catch {
+      setCertError('Certificate is only available for official passing attempts.');
+      setCertLoading(false);
+    }
+  };
   const [state, setState] = useState<LoadState>(
     () => (attemptId ? { status: 'loading' } : { status: 'not_found' }),
   );
@@ -232,6 +248,19 @@ export default function ResultPage() {
               Some answers need manual grading. Your overall score will update
               once they are reviewed.
             </StatusBanner>
+          )}
+                    {passed && (
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                onClick={handleViewCertificate}
+                disabled={certLoading}
+                className="w-fit rounded-full bg-primary-800 px-6 text-white hover:bg-primary-700"
+              >
+                {certLoading ? 'Preparing…' : 'View certificate'}
+              </Button>
+              {certError && <p className="text-small text-error">{certError}</p>}
+            </div>
           )}
 
           <section aria-label="Score summary" className="grid grid-cols-2 gap-3">
