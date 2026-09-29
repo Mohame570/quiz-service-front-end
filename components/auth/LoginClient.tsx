@@ -79,9 +79,17 @@ export default function LoginClient() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="password" className="text-small font-medium text-foreground">
-                Password
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-small font-medium text-foreground">
+                  Password
+                </Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-primary-700 hover:text-primary-800 underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"

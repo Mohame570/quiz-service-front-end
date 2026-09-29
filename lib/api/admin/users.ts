@@ -28,3 +28,36 @@ export async function updateAdminUserStatus(
     body: JSON.stringify({ isActive }),
   });
 }
+
+export type SignInActivityItem = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string | null;
+  userRole: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  signedInAt: string;
+};
+
+export type PaginatedSignInActivities = {
+  items: SignInActivityItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export async function getAdminSignInActivity(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<PaginatedSignInActivities> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set('page', String(params.page));
+  if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+
+  const qs = query.toString();
+  return apiFetch<PaginatedSignInActivities>(
+    `/api/admin/users/sign-in-activity${qs ? `?${qs}` : ''}`,
+  );
+}
