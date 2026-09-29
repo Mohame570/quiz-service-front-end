@@ -1,5 +1,6 @@
 'use client';
 
+// testing PR
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { clearToken, getUser, isAuthenticated } from '@/lib/auth/session';
@@ -25,7 +26,11 @@ function computeGateState(email: string | null): GateState {
 
   const user = getUser();
   if (!user?.email || user.email.toLowerCase() !== email.toLowerCase()) {
-    return { status: 'mismatch', invitedEmail: email, currentEmail: user?.email ?? 'unknown' };
+    return {
+      status: 'mismatch',
+      invitedEmail: email,
+      currentEmail: user?.email ?? 'unknown',
+    };
   }
   return { status: 'match' };
 }
@@ -38,7 +43,9 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
 
   useEffect(() => {
     if (state.status === 'unauthenticated' && email) {
-      router.replace(`/login?redirect=${encodeURIComponent(invitationTarget(quizId, email))}`);
+      router.replace(
+        `/login?redirect=${encodeURIComponent(invitationTarget(quizId, email))}`,
+      );
     } else if (state.status === 'match') {
       router.replace(`/student/quizzes/${quizId}`);
     }
@@ -47,7 +54,9 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
   const handleSwitchAccount = () => {
     if (!email) return;
     clearToken();
-    router.push(`/login?redirect=${encodeURIComponent(invitationTarget(quizId, email))}`);
+    router.push(
+      `/login?redirect=${encodeURIComponent(invitationTarget(quizId, email))}`,
+    );
   };
 
   if (state.status === 'invalid_link') {
@@ -59,8 +68,8 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
           </span>
           <h1 className="text-h2 text-foreground">Invalid invitation link</h1>
           <p className="max-w-md text-body text-foreground-secondary">
-            This invitation link is missing required information. Please use the link from your
-            invitation email.
+            This invitation link is missing required information. Please use the
+            link from your invitation email.
           </p>
           <a
             href="/student"
@@ -83,9 +92,14 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
           <h1 className="text-h2 text-foreground">Wrong account</h1>
           <p className="max-w-md text-body text-foreground-secondary">
             This invitation was sent to{' '}
-            <span className="font-medium text-foreground">{state.invitedEmail}</span>, but
-            you&apos;re signed in as{' '}
-            <span className="font-medium text-foreground">{state.currentEmail}</span>.
+            <span className="font-medium text-foreground">
+              {state.invitedEmail}
+            </span>
+            , but you&apos;re signed in as{' '}
+            <span className="font-medium text-foreground">
+              {state.currentEmail}
+            </span>
+            .
           </p>
           <button
             onClick={handleSwitchAccount}
@@ -103,7 +117,9 @@ export default function InvitationClient({ quizId }: { quizId: string }) {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-500 border-t-transparent" />
-          <p className="text-small text-foreground-secondary">Checking your invitation...</p>
+          <p className="text-small text-foreground-secondary">
+            Checking your invitation...
+          </p>
         </div>
       </div>
     </Container>

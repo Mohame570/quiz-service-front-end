@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Users,
   Settings,
+  Activity,
 } from 'lucide-react';
 import { useAdminShell } from '@/components/admin/dashboard/AdminShellProvider';
 
@@ -50,6 +51,11 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Users',
     href: '/admin/dashboard/users',
     icon: <Users className="h-4 w-4" />,
+  },
+  {
+    label: 'Sign-In Activity',
+    href: '/admin/dashboard/sign-in-activity',
+    icon: <Activity className="h-4 w-4" />,
   },
   {
     label: 'Settings',

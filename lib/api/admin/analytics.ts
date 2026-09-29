@@ -1,17 +1,34 @@
-// API client for admin analytics endpoints.
-// Backend: AnalyticsController (public — no auth guard)
-//   GET /api/analytics → DashboardSummaryDto
+// lib/api/admin/analytics.ts
+//
+// API client for the Sprint 2 live dashboard metrics.
+// Backend: GET /api/analytics/dashboard (ADMIN only, 403 otherwise)
 
 import { apiFetch } from '@/lib/api/client';
+import type { DashboardMetrics, QuizMetricSummary, StudentQuizStatus } from '@/types/analytics/analytics';
 
-export interface DashboardSummary {
-  totalQuizzes: number;
-  totalStudents: number;
-  totalAttempts: number;
-  averageScore: number;
+export interface StudentQuizMetric {
+  studentId: string;
+  studentName: string;
+  quizId: string;
+  status: StudentQuizStatus;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  attemptId: string | null;
+  startedAt: string | null;
+  submittedAt: string | null;
+  followUpRequired: boolean;
+  pendingEssayCount: number;
 }
 
-/** Fetch platform-wide analytics summary. */
-export async function getAnalyticsSummary(): Promise<DashboardSummary> {
-  return apiFetch<DashboardSummary>('/api/analytics');
+export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+  return apiFetch<DashboardMetrics>('/api/analytics/dashboard');
+}
+
+export async function getQuizMetricSummary(quizId: string): Promise<QuizMetricSummary> {
+  return apiFetch<QuizMetricSummary>(`/api/analytics/quizzes/${quizId}/metrics`);
+}
+
+export async function getStudentQuizMetrics(quizId: string): Promise<StudentQuizMetric[]> {
+  return apiFetch<StudentQuizMetric[]>(`/api/analytics/quizzes/${quizId}/student-metrics`);
 }
