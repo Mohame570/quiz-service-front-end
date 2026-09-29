@@ -7,6 +7,8 @@
 import DashboardHeader from '@/components/admin/dashboard/DashboardHeader';
 import AnalyticsDashboardView from '@/components/admin/dashboard/analytics/AnalyticsDashboardView';
 
+import { Suspense } from 'react';
+
 export const dynamic = 'force-dynamic';
 
 export default function AnalyticsDashboardPage() {
@@ -18,8 +20,6 @@ export default function AnalyticsDashboardPage() {
           description="Live participation, completion, and score metrics across every quiz."
         />
         <AnalyticsDashboardView />
-          description="Track platform-wide performance, student participation, and assessment metrics."
-        />
 
         <Suspense
           fallback={
