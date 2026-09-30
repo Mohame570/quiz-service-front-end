@@ -7,6 +7,7 @@
 // rather than synthetic 0%/NaN values — see the `hasData` check below.
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { getDashboardMetrics } from '@/lib/api/admin/analytics';
 import { ApiError } from '@/lib/api/client';
 import type { DashboardMetrics } from '@/types/analytics/analytics';
@@ -147,11 +148,17 @@ export default function AnalyticsDashboardView() {
           label="Absent"
           value={metrics.absenceCount}
         />
-        <StatsCard
-          icon={<ClipboardIcon />}
-          label="Needs follow-up"
-          value={metrics.followUpCount}
-        />
+        <Link
+          href="/admin/dashboard/follow-up"
+          aria-label={`View follow-up queue: ${metrics.followUpCount} need follow-up`}
+          className="block rounded-2xl transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+        >
+          <StatsCard
+            icon={<ClipboardIcon />}
+            label="Needs follow-up"
+            value={metrics.followUpCount}
+          />
+        </Link>
       </div>
 
       {hasCompletions ? (

@@ -34,7 +34,7 @@ export default function QuizMetricsTable({ quizzes }: { quizzes: QuizMetricSumma
           {quizzes.map((quiz) => (
             <tr key={quiz.quizId} className="border-b border-border last:border-0">
               <td className="px-5 py-3 font-medium text-foreground">
-                <Link href={`/admin/dashboard/follow-up?quizId=${quiz.quizId}`} className="hover:underline">
+                <Link href={`/admin/dashboard/view/${quiz.quizId}`} className="hover:underline">
                   {quiz.quizTitle}
                 </Link>
                 {!quiz.windowClosed && (
@@ -59,7 +59,15 @@ export default function QuizMetricsTable({ quizzes }: { quizzes: QuizMetricSumma
               <td className="px-5 py-3 text-foreground-secondary">
                 {quiz.windowClosed ? quiz.absenceCount : 'Window open'}
               </td>
-              <td className="px-5 py-3 text-foreground-secondary">{quiz.followUpCount}</td>
+              <td className="px-5 py-3 text-foreground-secondary">
+                <Link
+                  href={`/admin/dashboard/follow-up?quizId=${quiz.quizId}`}
+                  aria-label={`View ${quiz.followUpCount} follow-up items for ${quiz.quizTitle}`}
+                  className="hover:underline"
+                >
+                  {quiz.followUpCount}
+                </Link>
+              </td>
               <td className="px-5 py-3 text-foreground-secondary">{formatScore(quiz.averageScore)}</td>
             </tr>
           ))}

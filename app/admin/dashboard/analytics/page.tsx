@@ -6,8 +6,7 @@
 
 import DashboardHeader from '@/components/admin/dashboard/DashboardHeader';
 import AnalyticsDashboardView from '@/components/admin/dashboard/analytics/AnalyticsDashboardView';
-
-import { Suspense } from 'react';
+import AnalyticsTabs from '@/components/admin/dashboard/analytics/AnalyticsTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,17 +18,8 @@ export default function AnalyticsDashboardPage() {
           title="Analytics"
           description="Live participation, completion, and score metrics across every quiz."
         />
+        <AnalyticsTabs />
         <AnalyticsDashboardView />
-
-        <Suspense
-          fallback={
-            <div className="rounded-xl border border-border bg-surface p-8 text-center">
-              <p className="text-body text-foreground-secondary">Loading analytics data...</p>
-            </div>
-          }
-        >
-          <AnalyticsDashboardView />
-        </Suspense>
       </section>
     </main>
   );

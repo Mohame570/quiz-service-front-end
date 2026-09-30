@@ -36,5 +36,10 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.13",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
   }
 }

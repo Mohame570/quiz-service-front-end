@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FileQuestion,
   BarChart3,
+  ClipboardList,
   Bell,
   ShieldCheck,
   Users,
@@ -36,6 +37,22 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: 'Analytics',
     href: '/admin/dashboard/analytics',
     icon: <BarChart3 className="h-4 w-4" />,
+  },
+  {
+    label: 'Follow-up',
+    href: '/admin/dashboard/follow-up',
+    icon: (
+      <svg
+        viewBox="0 0 20 20"
+        className="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      >
+        <path d="M10 6v4l2.5 2.5" />
+        <circle cx="10" cy="10" r="7.2" />
+      </svg>
+    ),
   },
   {
     label: 'Notifications',
