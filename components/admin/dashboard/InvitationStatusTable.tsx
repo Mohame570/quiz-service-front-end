@@ -1,9 +1,13 @@
+'use client';
+
 // components/admin/dashboard/InvitationStatusTable.tsx
 //
 // Displays per-quiz invitation delivery status breakdown.
 // Consumed by: app/admin/dashboard/notifications/page.tsx
 
 import type { InvitationStatus } from '@/types/notification/notification';
+import QuizInviteesModal from './QuizInviteesModal';
+import QuizReminderModal from './QuizReminderModal';
 
 function StatusBadge({ sent, failed, pending }: { sent: number; failed: number; pending: number }) {
   const total = sent + failed + pending;
@@ -61,6 +65,7 @@ export default function InvitationStatusTable({
               <th className="px-4 py-3 font-medium text-foreground-secondary">Failed</th>
               <th className="px-4 py-3 font-medium text-foreground-secondary">Pending</th>
               <th className="px-4 py-3 font-medium text-foreground-secondary">Delivery</th>
+              <th className="px-4 py-3 font-medium text-foreground-secondary text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -87,6 +92,12 @@ export default function InvitationStatusTable({
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge sent={inv.totalSent} failed={inv.totalFailed} pending={inv.totalPending} />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <QuizInviteesModal quizId={inv.quizId} quizTitle={inv.quizTitle ?? 'Quiz'} />
+                    <QuizReminderModal quizId={inv.quizId} quizTitle={inv.quizTitle ?? 'Quiz'} />
+                  </div>
                 </td>
               </tr>
             ))}

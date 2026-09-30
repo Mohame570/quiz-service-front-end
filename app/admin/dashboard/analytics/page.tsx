@@ -16,7 +16,7 @@ export default function AnalyticsDashboardPage() {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10">
         <DashboardHeader
           title="Analytics"
-          description="Track platform-wide performance, student participation, and assessment metrics."
+          description="Live participation, completion, and score metrics across every quiz."
         />
         <AnalyticsTabs />
         <AnalyticsDashboardView />

@@ -85,3 +85,13 @@ export type OfficialScoreResponse = {
   attemptId: string | null;
   attemptsCount: number;
 };
+
+export type CertificatePublicView = {
+  code: string;
+  recipientName: string;
+  quizTitle: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  issuedAt: string;
+};

@@ -330,13 +330,22 @@ export default function QuizInstructionsPage() {
                       {quiz.reasonIfBlocked}
                     </StatusBanner>
                   )}
-                  <Button
-                    type="button"
-                    disabled
-                    className="w-fit rounded-full bg-muted/20 text-foreground-secondary opacity-50"
-                  >
-                    Start quiz
-                  </Button>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-fit rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
+                    >
+                      <Link href="/student/quiz-list">Back to quiz list</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-fit rounded-full border-primary-200 text-primary-800 hover:bg-primary-50"
+                    >
+                      <Link href="/student/profile">View my profile</Link>
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
